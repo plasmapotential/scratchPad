@@ -3,7 +3,6 @@
 #               then plot contours and mesh in plotly with user painting squares
 #Engineer:      T Looby
 #Date:          20220405
-import json
 from dash import Dash, dcc, html, dash_table
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
