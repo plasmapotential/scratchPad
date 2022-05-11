@@ -1,0 +1,6 @@
+json
+dash
+plotly
+numpy
+pandas
+shapely
