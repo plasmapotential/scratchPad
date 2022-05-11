@@ -1,5 +1,6 @@
 #crossSection2Mesh.py
 #Description:   get toroidal cross section from CAD STP file, and create 2D mesh
+#               then plot contours and mesh in plotly with user painting squares
 #Engineer:      T Looby
 #Date:          20220405
 import json
@@ -14,24 +15,27 @@ import plotly.graph_objects as go
 import os
 import sys
 
-#user inputs
+#============== user inputs ===================
 rMax = 5000
 zMax = 3000
 phi = 90.0 #degrees
+grid_size = 200
 
-rootPath = '/home/tom/work/CFS/projects/reducedCAD/vacVes'
-
-#testCase
-#STPfile = '/home/tom/work/CFS/projects/reducedCAD/HEAT/testCAD.step'
-#real CAD
-STPfile = '/home/tom/work/CFS/projects/reducedCAD/vacVes/vacVes.step'
+#path where CAD .step file lives
+rootPath = '/home/tom/work/CFS/projects/reducedCAD/vacVes/'
+STPfile = rootPath + 'vacVes.step'
 
 #outputs
-STPout2D = '/home/tom/work/CFS/projects/reducedCAD/vacVes/vacVesout2D.step'
-pTableOut = '/home/tom/work/CFS/projects/reducedCAD/vacVes/pTable.csv'
+#a 2D CAD file with edges
+STPout2D = rootPath + 'vacVesout2D.step'
+#a file with the pTable.csv
+pTableOut = rootPath + 'pTable.csv'
 
 #HEAT path
 HEATpath = '/home/tom/source/HEAT/github/source'
+#=============================================
+
+#load HEAT into the path envVar
 sys.path.append(HEATpath)
 
 #load HEAT environment
@@ -52,7 +56,7 @@ print("Number of part objects in CAD: {:d}".format(len(CAD.CADparts)))
 slices = CAD.getPolCrossSection(rMax,zMax,phi)
 print("Number of part objects in section: {:d}".format(len(slices)))
 
-#for saving output
+#for saving output 2D STP file
 save2DSTEP = False
 if save2DSTEP == True:
     CAD.saveSTEP(STPout2D, slices)
@@ -60,6 +64,8 @@ if save2DSTEP == True:
 #save CSV of points
 saveCSV = False
 if saveCSV == True:
+    #make this a loop to print them all
+    i=0
     xyz = np.array([ [v.X, v.Y, v.Z] for v in slices[0].Shape.Vertexes])
     R = np.sqrt(xyz[:,0]**2 + xyz[:,1]**2)
     Z = xyz[:,2]
@@ -117,7 +123,6 @@ if createMesh == True:
     poly = Polygon(np.vstack([R_out,Z_out]).T, [holeRing])
     polyCoords = np.array(poly.exterior.coords)
 
-    grid_size = 200
     ibounds = np.array(poly.bounds)//grid_size
     ibounds[2:4] += 1
     xmin, ymin, xmax, ymax = ibounds*grid_size
@@ -327,23 +332,3 @@ if dashApp == True:
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-
-#generate faces from wires and edges
-#createFace = False
-#if createFace == True:
-#    faces = []
-#    for i,slice in enumerate(slices):
-#        print('{:d}================='.format(i))
-#        print(slice.Shape.SubShapes)
-#        tmpObj = CAD.CADdoc.addObject("Part::Feature", "Obj{:d}".format(i))
-##       try:
-##           tmpObj.Shape = CAD.createWire(slice.Shape.SubShapes)
-##       except:
-##           continue
-#        tmpObj.Shape = CAD.createWire(slice.Shape)
-#        CAD.CADdoc.addObject("Part::Face", "Face{:d}".format(i)).Sources = (tmpObj,)
-#        faces.append(CAD.CADdoc.Objects[-1])
-#        CAD.CADdoc.recompute()
-#
-#    #save step with faces
-#    CAD.saveSTEP(rootPath + 'testOutRealCAD2.stp', faces)
