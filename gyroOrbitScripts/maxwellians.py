@@ -1,0 +1,125 @@
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from scipy.integrate import trapz, quad
+from scipy.stats import maxwell
+from scipy.interpolate import interp1d
+
+#unit conversions
+kg2eV = 5.609e35 #1kg = 5.609e35 eV
+eV2K = 1.160e4 #1ev=1.160e4 K
+
+#constants
+m_eV = 931.49e6 #eV/c^2
+#m_kg = m / kg2eV
+kB = 8.617e-5 #ev/K
+B = 5 #tesla
+e = 1.602e-19 # C
+T0_eV = 10 # eV
+#T0_K = T0_eV * eV2K
+c = 3e8 #m/s
+
+#velocity space angle
+gyroAng = np.radians(45)
+print(gyroAng)
+
+print("vAvg")
+vAvg = np.sqrt(2*T0_eV/(m_eV/c**2))
+print(vAvg)
+
+vMax = 5*vAvg
+
+v = np.linspace(0,vMax, 10000)
+vPerp = v*np.cos(gyroAng)
+vParallel = v*np.sin(gyroAng)
+vPerpAvg = vAvg*np.cos(gyroAng)
+vParallelAvg = vAvg*np.sin(gyroAng)
+
+#f_v = v * (m_eV/c**2) / (T0_eV) * np.exp(-(m_eV/c**2 * v**2) / (2*T0_eV) )
+fofV = lambda x: x * (m_eV/c**2) / (T0_eV) * np.exp(-(m_eV/c**2 * x**2) / (2*T0_eV) )
+f_v = fofV(v)
+
+f_vPerp = vPerp * (m_eV/c**2) / (T0_eV) * np.exp(-(m_eV/c**2 * vPerp**2) / (2*T0_eV) )
+f_vParallel = vParallel * (m_eV/c**2) / (T0_eV) * np.exp(-(m_eV/c**2 * vParallel**2) / (2*T0_eV) )
+
+v_cdf = np.cumsum(f_v[1:])*np.diff(v)
+v_cdf = np.insert(v_cdf, 0, 0)
+inverseCDF = interp1d(v_cdf, v, kind='linear')
+forwardCDF = interp1d(v, v_cdf, kind='linear')
+
+cdfMax = v_cdf[-1]
+cdfMin = v_cdf[0]
+N_vSlice = 1
+sliceWidth = cdfMax / (N_vSlice+1)
+#cdfSlices = np.linspace(cdfMin,cdfMax,N_vSlice+2)[1:-1]
+cdfSlices = np.linspace(0,1,N_vSlice+2)[1:-1]
+
+vSlices = inverseCDF(cdfSlices)
+print("vSlices")
+print(vSlices)
+print("cdfSlices")
+print(cdfSlices)
+
+
+fig = make_subplots(specs=[[{"secondary_y": True}]])
+fig.add_trace(go.Scatter(x=v, y=f_v, name="vPDF", line=dict(color='royalblue', width=4, dash='solid'),
+                         mode='lines', marker_symbol='circle', marker_size=14),
+                         secondary_y=False)
+fig.add_trace(go.Scatter(x=v, y=v_cdf, name="vCDF", line=dict(color='red', width=4, dash='solid'),
+                         mode='lines', marker_symbol='circle', marker_size=14),
+                         secondary_y=True)
+fig.add_trace(go.Scatter(x=vSlices, y=cdfSlices, mode='markers', marker_symbol='cross',
+                         marker_size=20), secondary_y=True)
+for i in range(len(vSlices)):
+    fig.add_vline(x=vSlices[i], line_width=3, line_dash="dash", line_color="green")
+
+
+fig.update_layout(
+    title="Example Distributions for angle=60deg",
+    xaxis_title="Velocity [m/s]",
+    yaxis_title="",
+    font=dict(
+        family="Arial",
+        size=30,
+        color="Black"
+        ),
+    )
+print("===Averages:")
+print(vAvg)
+print(vPerpAvg)
+print(vParallelAvg)
+
+print("===Integrals")
+#Velocity stuff
+#print(np.sum(f_v)*dv)
+print("Integral of f(v):")
+print(trapz(f_v,v))
+print("Integral of slices")
+sum = np.zeros((len(vSlices)+1))
+#for i in range(len(vSlices)-1):
+#    sum[i] = quad(fofV, vSlices[i], vSlices[i+1])[0]
+#    print(quad(fofV, vSlices[i], vSlices[i+1])[0])
+#sum[-1] = quad(fofV, vSlices[-1], v[-1])[0]
+#print(quad(fofV, vSlices[-1], v[-1])[0])
+
+
+for i in range(len(vSlices)):
+    if i==0:
+        sum[i] = quad(fofV, 0, vSlices[i])[0]
+    else:
+        sum[i] = quad(fofV, vSlices[i-1], vSlices[i])[0]
+    print(sum[i])
+sum[-1] = quad(fofV, vSlices[-1], vMax)[0]
+print(sum[-1])
+print("sum of vSlice integrals")
+print(np.sum(sum))
+
+
+
+print("===Indexes")
+print(v[10])
+print(np.sqrt(vPerp[10]**2+vParallel[10]**2))
+
+fig.show()
