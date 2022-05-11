@@ -3,4 +3,3 @@ plotly
 numpy
 pandas
 shapely
-S
