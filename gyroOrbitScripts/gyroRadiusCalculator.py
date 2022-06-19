@@ -3,9 +3,9 @@ import numpy as np
 #deuterium
 ionMassAMU = 2.0
 #electrons
-ionMassAMU = 1.0 / 1836
-T_eV = 100 #eV
-B = 1 #T
+electronMassAMU = 1.0 / 1836
+T_eV = 10 #eV
+B = 1.1 #T
 
 kg2eV = 5.609e35 #1kg = 5.609e35 eV/c^2
 eV2K = 1.160e4 #1ev=1.160e4 K
@@ -41,8 +41,8 @@ print("omegaGyro: {:f}".format(omegaGyro))
 print("rGyro: {:f}".format(rGyro))
 
 print("===CUSTOM")
-vPhase = 0.3927 #rad
-vSlice = 115000 #m/s
+vPhase = np.radians(89) #rad
+vSlice = vThermal #m/s
 vPerp = vSlice * np.cos(vPhase)
 rGyro = vPerp / omegaGyro
 print("vPerp: {:f}".format(vPerp))

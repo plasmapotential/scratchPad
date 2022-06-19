@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 #use this to write an EPS file
-writeEPS = True
+writeEPS = False
 epsFile = '/home/tom/phd/dissertation/diss/figures/castelTplot.eps'
 
 nombres = ['openFoamOpt','openFoamGyro']

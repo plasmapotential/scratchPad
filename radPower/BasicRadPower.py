@@ -131,7 +131,7 @@ class photonPointSource:
         """
         initial location and magnitude of photon radiative pointSource
         x0,y0,z0 is location of point source
-        P_rad is magnitude
+        P_rad is magnitude in MW
         """
         self.P_rad = P_rad
         self.centers = np.array([[x0,y0,z0]])

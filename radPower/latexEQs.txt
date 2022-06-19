@@ -1,0 +1,25 @@
+#Solid Angle
+d \omega = \frac{dA \text{cos}\theta}{r^2} = \frac{dA}{r^2}(\hat{r} \cdot \hat{n})
+
+#Power
+4 \pi J = P_{rad}
+
+#Irradiance from i to j, E_ij:
+\text{E}_{ij} [\frac{\text{MW}}{\text{m}^2}] = \frac{d \phi}{d A} = \frac{J d \omega}{dA} = \frac{J}{|\vec{r}_{ij}|^2}(\hat{n}_j \cdot \hat{r}_{ij}) = \frac{P}{4 \pi |\vec{r}_{ij}|^2} (\hat{n}_j \cdot \hat{r}_{ij})
+
+#BRDF
+\text{BRDF}(i,j,k) [\text{sr}^{-1}] = \frac{L_{jk}}{E_{ij}}
+
+#Radiance
+\text{L}_{jk} [\frac{\text{MW}}{\text{m}^2 \text{sr} }] = \text{E}_{ij} \cdot \text{BRDF}_{ijk} = \frac{P}{4 \pi |\vec{r}_{ij}|^2} (\hat{n}_j \cdot \hat{r}_{ij}) \cdot \text{BRDF}_{ijk}
+
+#power from i to j reflected to k
+P_{ijk} = \text{L}_{jk} \cdot d \omega_{jk} \cdot A_j
+
+#power from i to j
+P_{ij} = E_{ij} \cdot A_j = \frac{P}{4 \pi |\vec{r}_{ij}|^2} (\hat{n}_j \cdot \hat{r}_{ij})
+
+#power from i to j reflected to k
+P_{ijk} = \text{L}_{jk} \cdot \omega_{jk} \cdot A_j = E_{ij} \cdot \text{BRDF}_{ijk} \cdot \omega_{jk} \cdot A_j = P_{ij} \cdot \text{BRDF}_{ijk} \cdot \omega_{jk}
+P_{ijk} = \frac{P_{ij}A_j}{4 \pi |\vec{r}_{ij}|^2} (\hat{n}_j \cdot \hat{r}_{ij}) \cdot \text{BRDF}_{ijk} \cdot \frac{A_k }{|\vec{r}_{jk}|^2}(\hat{n}_k \cdot \hat{r}_{jk})
+P_{ijk}  = \frac{P_{ij} A_j A_k}{4 \pi |\vec{r}_{ij}|^2 |\vec{r}_{jk}|^2} (\hat{n}_j \cdot \hat{r}_{ij}) (\hat{n}_k \cdot \hat{r}_{jk}) \text{BRDF}_{ijk}
