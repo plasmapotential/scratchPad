@@ -18,10 +18,10 @@ import matplotlib.pyplot as plt
 
 matlab_file = '/home/tom/work/CFS/projects/CREATE/CarMa0NL_Shot10_v6.mat'
 gIn = '/home/tom/work/CFS/projects/CREATE/g000001.00010'
-gOut = '/home/tom/work/CFS/projects/CREATE/create.geqdsk'
+gOut = '/home/tom/work/CFS/projects/CREATE/create_eq3.geqdsk'
 mat = scipy.io.loadmat(matlab_file)
 writeMask = True
-plotMask = True
+plotMask = False
 
 #These are all defined in the MATLAB file
 R = mat['R']
@@ -29,8 +29,9 @@ Z = mat['Z']
 r = np.unique(R)
 z = np.unique(Z)
 timeSIM = mat['timeSIM']
-t = 0
+t = 2
 psiRZ = mat['psi_tot_grid'][:,:,t]
+psiRZ[np.isnan(psiRZ)] = np.min(psiRZ[~np.isnan(psiRZ)])
 jRZ = mat['j_zeta_grid'][t]
 psiAxis = mat['psi_a'][0,t]
 psiSep = mat['psi_b'][0,t]
@@ -43,37 +44,56 @@ rCS = mat['r_CS']
 zCS = mat['z_CS']
 Ieq = mat['Ieq']
 
-print(psiRZ)
+Nr = len(r)
+Nz = len(z)
+
+psi0 = np.max(psiRZ[np.where(psiRZ>=0.0)])
+idx = np.where(psiRZ == psi0)
+RmAxis = R[idx]
+ZmAxis = Z[idx]
+
+print(mat['psi_a'])
+print(mat['psi_b'])
+print(mat['psi_l'])
+print(ZmAxis)
 
 #these are defined in the PRD FreeGS equilibrium
 ep = EP.equilParams(gIn)
-Fpol = ep.g['Fpol']
-qPsi = ep.g['qpsi']
+ffunc = interp.interp1d(np.linspace(0.0,1.0, len(ep.g['Fpol'])), ep.g['Fpol'])
+qfunc = interp.interp1d(np.linspace(0.0,1.0, len(ep.g['qpsi'])), ep.g['qpsi'])
 Bt0 = ep.g['Bt0']
+wall = ep.g['wall']
+Nwall = len(wall)
+Ip = ep.g['Ip']
+
+
+
+#These we derive from what came out of the matlab file and GEQDSK file
+R1 = np.min(R)
+Xdim = np.max(r) - np.min(r)
+Zdim = np.max(z) - np.min(z)
+R0 = Xdim / 2.0 + np.min(r)
+Zmid = Zdim / 2.0 + np.min(z)
+
+psiN1D = np.linspace(0.0, 1.0, len(r))
+psi1D = psiN1D * (psiSep - psiAxis) + psiAxis
+#psi1D = 2*np.pi * (psiSep - psiAxis) * psiN1D
+psiN2D = (psiRZ - psiAxis) / (psiSep - psiAxis)
+
+#interpolate Fpol and qPsi to the new grid
+Fpol = ffunc(psiN1D)
+qPsi = qfunc(psiN1D)
+Fprime = np.diff(Fpol) / np.diff(psi1D)
 
 levels = sorted(np.append([0.0,0.05,0.1,0.25,0.5,0.75,0.95, 1.0], np.linspace(0.99,psiRZ.max(),15)))
-CS = plt.contourf(R,Z,psiRZ,levels,cmap=plt.cm.cividis)
+CS = plt.contourf(R,Z,psiN2D,levels,cmap=plt.cm.cividis)
 lcfsCS = plt.contour(CS, levels = [1.0])
 for i in range(len(lcfsCS.allsegs[0])):
     rlcfs = lcfsCS.allsegs[0][i][:,0]
     zlcfs = lcfsCS.allsegs[0][i][:,1]
 lcfs = np.vstack((rlcfs, zlcfs)).T
+Nlcfs = len(lcfs)
 
-#These we derive from what came out of the matlab file and GEQDSK file
-wall = np.vstack((rlim, zlim)).T
-Nwall = len(rlim)
-Nr = len(r)
-Nz = len(z)
-R1 = np.min(R)
-Xdim = np.max(R) - np.min(R)
-Zdim = np.max(Z) - np.min(Z)
-R0 = Xdim / 2.0
-Zmid = Zdim / 2.0
-Nlcfs = len(lcfs[0])
-psiN1D = np.linspace(psiAxis, psiSep, ep.g['NR'])
-psi1D = psiN1D * (psiSep - psiAxis) + psiAxis
-#psiN2D = (psiRZ - psiAxis) / (psiSep - psiAxis)
-Fprime = np.diff(Fpol) / np.diff(psi1D)
 
 #Interpolate the first point in FFprime
 deltaFp = Fprime[0] - Fprime[1]
@@ -88,16 +108,11 @@ if plotMask:
     plt.legend()
     plt.show()
 
-
-
 #These we don't have so we just write arbitrary values in
 KVTOR = 0
 RVTOR = 0
 NMASS = 0
 RHOVN = np.zeros((Nr))
-Ip = ep.g['Ip']
-RmAxis = 1.0
-ZmAxis = 0.0
 Pprime = np.zeros((Nr))
 Pres = np.ones((Nr))
 
@@ -117,15 +132,14 @@ def write_array(x, f):
                 f.write('% .9E' % (x[rows*5 + j]))
         f.write('\n')
 
-
-
 shot = 1
 time = 1
 # Now, write to file using same style as J. Menard script (listed above)
 # Using function in WRITE_GFILE for reference
 
 if writeMask:
-    with open(gOut + 'g' + format(shot, '06d') + '.' + format(time,'05d'), 'w') as f:
+#    with open(gOut + 'g' + format(shot, '06d') + '.' + format(time,'05d'), 'w') as f:
+    with open(gOut, 'w') as f:
         f.write('  EFITD    xx/xx/xxxx    #' + str(shot) + '  ' + str(time) + 'ms        ')
         f.write('   3 ' + str(Nr) + ' ' + str(Nz) + '\n')
         f.write('% .9E% .9E% .9E% .9E% .9E\n'%(Xdim, Zdim, R0, R1, Zmid))
