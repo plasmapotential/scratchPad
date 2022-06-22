@@ -10,6 +10,7 @@ import scipy.integrate as integ
 import scipy.interpolate as interp
 import matplotlib.pyplot as plt
 import sys
+from shapely.geometry import Point, Polygon
 #you need equilParams_class to run this script
 EFITpath = '/home/tom/source'
 sys.path.append(EFITpath)
@@ -18,7 +19,7 @@ import matplotlib.pyplot as plt
 
 matlab_file = '/home/tom/work/CFS/projects/CREATE/CarMa0NL_Shot10_v6.mat'
 gIn = '/home/tom/work/CFS/projects/CREATE/g000001.00010'
-gOut = '/home/tom/work/CFS/projects/CREATE/create_eq3.geqdsk'
+gOut = '/home/tom/work/CFS/projects/CREATE/create.geqdsk'
 mat = scipy.io.loadmat(matlab_file)
 writeMask = True
 plotMask = False
@@ -32,7 +33,10 @@ timeSIM = mat['timeSIM']
 t = 2
 psiRZ = mat['psi_tot_grid'][:,:,t]
 psiRZ[np.isnan(psiRZ)] = np.min(psiRZ[~np.isnan(psiRZ)])
-jRZ = mat['j_zeta_grid'][t]
+jRZ = mat['j_zeta_grid'][:,:,t]
+jRZ[np.isnan(jRZ)] = np.min(jRZ[~np.isnan(jRZ)])
+#interpolator
+jFunc = interp.RectBivariateSpline(r, z, jRZ.T)
 psiAxis = mat['psi_a'][0,t]
 psiSep = mat['psi_b'][0,t]
 psiLim = mat['psi_l'][0,t]
@@ -42,7 +46,11 @@ zlim = mat['z_fw']
 haloCurrent = mat['halo_current']
 rCS = mat['r_CS']
 zCS = mat['z_CS']
-Ieq = mat['Ieq']
+Ieq = mat['Ieq'][t]
+Ieq[np.isnan(Ieq)] = np.min(Ieq[~np.isnan(Ieq)])
+
+
+
 
 Nr = len(r)
 Nz = len(z)
@@ -51,11 +59,7 @@ psi0 = np.max(psiRZ[np.where(psiRZ>=0.0)])
 idx = np.where(psiRZ == psi0)
 RmAxis = R[idx]
 ZmAxis = Z[idx]
-
-print(mat['psi_a'])
-print(mat['psi_b'])
-print(mat['psi_l'])
-print(ZmAxis)
+j0 = jFunc.ev(RmAxis, ZmAxis)
 
 #these are defined in the PRD FreeGS equilibrium
 ep = EP.equilParams(gIn)
