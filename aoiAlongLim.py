@@ -153,7 +153,10 @@ else:
     #get center points
     newCtrs = centers(interpolated_points)
     newdist = dist
-
+    ctrsAndPts = np.empty((len(interpolated_points) + len(newCtrs), 2))
+    ctrsAndPts[0::2] = interpolated_points
+    ctrsAndPts[1::2] = newCtrs
+    newDistCtrs = distance(ctrsAndPts)[1::2]
 
 # normal at each surface for entire contour
 newNorms = normals(interpolated_points)
@@ -289,6 +292,6 @@ if plotMaskAllT == True:
     fig.update_layout(showlegend=False)
     fig.update_xaxes(title="Distance Along Contour [m]")
     fig.update_yaxes(title="Angle of Incidence [degrees]")
-    fig.update_xaxes(range=[1.1, 2.8])
+    fig.update_xaxes(range=[minS-0.1, maxS+0.1])
     fig.update_yaxes(range=[-90, 90])
     fig.show()
