@@ -5,6 +5,7 @@
 #engineer:      T Looby
 import sys
 import numpy as np
+import scipy.interpolate as scinter
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -49,7 +50,7 @@ SPts = [
 
 
 #Resolution in S direction
-numS=500
+numS=1000
 #geqdsk file
 gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_flattop_negPsi'
 #gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_kappa165lsn_negPsi'
@@ -65,7 +66,7 @@ minS=1.1
 #S greater than actual s maximum defaults to s[-1] [m]
 maxS=2.7
 #tile index for plotting single tile green overlay
-Tidx = 5
+Tidx = 3
 
 #masks
 sectionMask = True
@@ -176,6 +177,8 @@ Brz = np.zeros((len(R), 2))
 #B field from MHD Equilibrium
 Brz[:,0] = ep.BRFunc.ev(R,Z)
 Brz[:,1] = ep.BZFunc.ev(R,Z)
+psiN = ep.psiFunc.ev(R,Z)
+Bp = np.sqrt(Brz[:,0]**2 + Brz[:,1]**2)
 Bt = ep.BtFunc.ev(R,Z)
 B = np.sqrt(Brz[:,0]**2 + Brz[:,1]**2 + Bt**2)
 Brz[:,0] /= B
@@ -186,12 +189,89 @@ Brz[:,1] /= B
 #Brz[:,1] = -1.0
 #Brz[:,0] = 1.82 - 1.578
 #Brz[:,1] = (-1.6) - (-1.303)
-#Bnorm = np.linalg.norm(Brz[0], axis=0)
-#Brz /= Bnorm
-
+#Bt = ep.BtFunc.ev(R,Z)
+#B = np.sqrt(Brz[:,0]**2 + Brz[:,1]**2 + Bt**2)
+#Brz[:,0] /= B
+#Brz[:,1] /= B
 
 bdotn = np.multiply(Brz, newNorms2D).sum(1)
 AOI = np.degrees(np.arcsin(bdotn))
+
+#calculate lambda_q at SPs
+lq = 0.0003 #in meters at OMP
+psiaxis = ep.g['psiAxis']
+psiedge = ep.g['psiSep']
+deltaPsi = np.abs(psiedge - psiaxis)
+s_hat = psiN - 1.0
+#map R coordinates up to the midplane via flux mapping
+R_omp = np.linspace(ep.g['RmAxis'], ep.g['R1'] + ep.g['Xdim'], 100)
+Z_omp = np.zeros(len(R_omp))
+psi_omp = ep.psiFunc.ev(R_omp,Z_omp)
+f = scinter.UnivariateSpline(psi_omp, R_omp, s = 0, ext = 'const')
+R_mapped = f(psiN)
+Z_mapped = np.zeros(len(R_mapped))
+Bp_mapped = ep.BpFunc.ev(R_mapped,Z_mapped)
+# Gradient
+gradPsi = Bp_mapped*R_mapped
+xfm = gradPsi / deltaPsi
+# Decay width at target mapped to flux coordinates
+lq_hat = lq * xfm
+
+#calculate strike points
+p0 = psiN[0]
+S0 = newDistCtrs[0]
+lq0 = lq_hat[0]
+SPs = []
+SPidxs = []
+lqs = []
+Nlqs = 1.0
+Slqs = []
+for i,p in enumerate(psiN):
+    if p0 < 1.0:
+        if p > 1.0:
+            frac = (1.0 - p0) / (p - p0)
+            S = (newDistCtrs[i] - S0)*frac + S0
+            SPs.append(S)
+            SPidxs.append(i)
+            lqSP = (lq_hat[i] - lq0)*frac + lq0
+            lqs.append(lqSP)
+            Slq = (newDistCtrs[i] - S0) / (p - p0) * lqSP * Nlqs
+            Slqs.append(Slq)
+
+    elif p0 > 1.0:
+        if p < 1.0:
+            frac = (p0 - 1.0) / (p0 - p)
+            S = (newDistCtrs[i] - S0)*frac + S0
+            SPs.append(S)
+            SPidxs.append(i)
+            lqSP = lq0 - (lq0 - lq_hat[i])*frac
+            lqs.append(lqSP)
+            Slq = (newDistCtrs[i] - S0) / (p0 - p) * lqSP * Nlqs
+            Slqs.append(Slq)
+
+    else:
+        print("Right on SP?...seems unlikely...")
+
+    p0 = p
+    S0 = newDistCtrs[i]
+    lq0 = lq_hat[i]
+
+
+#option 2, calculate fx analytically using fx function (replaces Slqs with lqAway)
+Bpr = ep.BRFunc.ev(R[SPidxs],Z[SPidxs])
+Bpz = ep.BZFunc.ev(R[SPidxs],Z[SPidxs])
+# Get R and Z vectors at the midplane
+R_omp_sol = ep.g['lcfs'][:,0].max()
+# Evaluate B at outboard midplane
+Bp_omp = ep.BpFunc.ev(R_omp_sol,0.0)
+theta = np.zeros((Brz[SPidxs].shape))
+theta[:,0] = Bpr / Bp[SPidxs]
+theta[:,1] = Bpz / Bp[SPidxs]
+thetadotn =  np.multiply(theta, newNorms2D[SPidxs]).sum(1)
+#flux expansion at each target location
+fx = (Bp_omp * R_omp_sol) / (Bp[SPidxs] * R[SPidxs]) * (1.0 / np.abs(thetadotn))
+lqAway = Nlqs*fx*lq
+
 
 #print S at each target start/end point
 ptIdxs = []
@@ -244,6 +324,12 @@ if plotMaskContour is True:
     fig.add_trace(go.Scatter(x=interpolated_points[idxDist,0],
                              y=interpolated_points[idxDist,1],
                              name="Region of Interest", mode='lines+markers'))
+
+    for i,S in enumerate(SPs):
+        fig.add_vline(x=S, line_width=4, line_dash="dash")
+        fig.add_vline(x=S+Slqs[i], line_width=4, line_dash="dot")
+        fig.add_vline(x=S-Slqs[i], line_width=4, line_dash="dot")
+
     #fig.add_trace(go.Scatter(x=ctrs[:,0], y=ctrs[:,1]))
     fig.update_yaxes(scaleanchor = "x",scaleratio = 1,)
     fig.update_layout(legend=dict(
@@ -274,9 +360,15 @@ if plotMaskSingleT == True:
     fig.add_vrect(x0=startIdxs[Tidx], x1=endIdxs[Tidx],
               annotation_text="Tile of Interest", annotation_position="top left",
               fillcolor="green", opacity=0.25, line_width=0)
+    for i,S in enumerate(SPs):
+        fig.add_vline(x=S, line_width=4, line_dash="dash")
+        fig.add_vline(x=S+Slqs[i], line_width=4, line_dash="dot")
+        fig.add_vline(x=S-Slqs[i], line_width=4, line_dash="dot")
     fig.update_layout(showlegend=False)
     fig.update_xaxes(title="Distance Along Contour [m]")
     fig.update_yaxes(title="Angle of Incidence [degrees]")
+    fig.update_xaxes(range=[minS-0.03, maxS+0.03])
+    fig.update_yaxes(range=[-8, 8])
     fig.show()
 
 #plot for all tiles.  set Smin and Smax to entire divertor first
@@ -289,6 +381,12 @@ if plotMaskAllT == True:
         fig.add_vrect(x0=startIdxs[Tidx], x1=endIdxs[Tidx],
                 annotation_text="T{:d}".format(Tidx+1), annotation_position="top left",
                 fillcolor=px.colors.qualitative.Vivid[Tidx], opacity=0.25, line_width=0)
+
+    for i,S in enumerate(SPs):
+        fig.add_vline(x=S, line_width=4, line_dash="dash")
+        fig.add_vline(x=S+lqAway[i], line_width=4, line_dash="dot")
+        fig.add_vline(x=S-lqAway[i], line_width=4, line_dash="dot")
+
     fig.update_layout(showlegend=False)
     fig.update_xaxes(title="Distance Along Contour [m]")
     fig.update_yaxes(title="Angle of Incidence [degrees]")
