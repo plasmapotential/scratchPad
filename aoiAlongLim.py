@@ -18,19 +18,6 @@ sys.path.append(EFITpath)
 import EFIT.equilParams_class as EP
 from scipy.interpolate import interp1d
 
-#Resolution in S direction
-numS=500
-#geqdsk file
-#gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_flattop_negPsi'
-#gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_kappa165lsn_negPsi'
-#gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_q1run_negPsi'
-gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_8T_negPsi'
-
-#copy file to tmp location with new name so that EP class can read it
-gRenamed = '/home/tom/HEAT/data/tmpDir/g000001.00001'
-shutil.copyfile(gIn, gRenamed)
-
-
 #divertor points
 points = [[1.41,	-1.137],
           [1.287,	-1.224],
@@ -60,13 +47,25 @@ SPts = [
         2.6623013,
         ]
 
+
+#Resolution in S direction
+numS=500
+#geqdsk file
+gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_flattop_negPsi'
+#gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_kappa165lsn_negPsi'
+#gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_q1run_negPsi'
+#gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_8T_negPsi'
+
+#copy file to tmp location with new name so that EP class can read it
+gRenamed = '/home/tom/HEAT/data/tmpDir/g000001.00001'
+shutil.copyfile(gIn, gRenamed)
+
 #Minimum S.  S=0 is midplane [m]
-minS=1.18
+minS=1.1
 #S greater than actual s maximum defaults to s[-1] [m]
 maxS=2.7
 #tile index for plotting single tile green overlay
 Tidx = 5
-
 
 #masks
 sectionMask = True
@@ -293,6 +292,6 @@ if plotMaskAllT == True:
     fig.update_layout(showlegend=False)
     fig.update_xaxes(title="Distance Along Contour [m]")
     fig.update_yaxes(title="Angle of Incidence [degrees]")
-    fig.update_xaxes(range=[minS-0.1, maxS+0.1])
-    fig.update_yaxes(range=[-10, 10])
+    fig.update_xaxes(range=[minS-0.03, maxS+0.03])
+    fig.update_yaxes(range=[-8, 8])
     fig.show()
