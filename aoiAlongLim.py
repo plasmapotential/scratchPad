@@ -177,9 +177,10 @@ Brz = np.zeros((len(R), 2))
 #B field from MHD Equilibrium
 Brz[:,0] = ep.BRFunc.ev(R,Z)
 Brz[:,1] = ep.BZFunc.ev(R,Z)
-Bp = np.sqrt(Brz[:,0]**2 + Brz[:,1]**2)
-Brz[:,0] /= Bp
-Brz[:,1] /= Bp
+Bt = ep.BtFunc.ev(R,Z)
+B = np.sqrt(Brz[:,0]**2 + Brz[:,1]**2 + Bt**2)
+Brz[:,0] /= B
+Brz[:,1] /= B
 
 #test cases with predefined B field
 #Brz[:,0] = 0.0
@@ -293,5 +294,5 @@ if plotMaskAllT == True:
     fig.update_xaxes(title="Distance Along Contour [m]")
     fig.update_yaxes(title="Angle of Incidence [degrees]")
     fig.update_xaxes(range=[minS-0.1, maxS+0.1])
-    fig.update_yaxes(range=[-90, 90])
+    fig.update_yaxes(range=[-10, 10])
     fig.show()
