@@ -52,10 +52,11 @@ SPts = [
 #Resolution in S direction
 numS=1000
 #geqdsk file
-gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_flattop_negPsi'
+#gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_flattop_negPsi'
 #gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_kappa165lsn_negPsi'
 #gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_q1run_negPsi'
 #gIn = '/home/tom/HEATruns/SPARC/scenarios_FreeGS/sparc/geqdsk_8T_negPsi'
+gIn = '/home/tom/HEATruns/SPARC/RZ2AOI/sparc/useThese/g000001.00360'
 
 #copy file to tmp location with new name so that EP class can read it
 gRenamed = '/home/tom/HEAT/data/tmpDir/g000001.00001'
@@ -393,3 +394,8 @@ if plotMaskAllT == True:
     fig.update_xaxes(range=[minS-0.03, maxS+0.03])
     fig.update_yaxes(range=[-8, 8])
     fig.show()
+
+print("test")
+print(Slqs)
+print(lqAway)
+print("test")

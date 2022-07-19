@@ -10,13 +10,15 @@ sys.path.append(EFITPath)
 sys.path.append(HEATPath)
 import MHDClass
 
-gFilePath = '/home/tom/HEATtest/STEP/darioHEATruns/g000001.00001'
+gFilePath = '/home/tom/HEATruns/SPARC/fishScale/sparc/g000001.00001'
 ep = MHDClass.setupForTerminalUse(gFile=gFilePath).ep
 
 
 #R=0.621875
-R=3.98
+#location of OMP separatrix
+R=2.43
 Z = 0.0
+kappa = 1.75
 Raxis = ep.g['RmAxis']
 a = R - Raxis
 
@@ -35,11 +37,13 @@ print(Bp1)
 print("Bp [T] calculated @R from gfile:")
 print(Bp)
 
-print("TEDST")
+print("TEST")
 print(ep.g['Bt0'])
 print(ep.g['Fpol'][-1] / R)
 print(Bt)
 print(ep.g['Bt0']*Raxis/R)
+print(a)
+print(ep.g['RmAxis'])
 
 
 psi = ep.g['psi']
@@ -48,12 +52,17 @@ f = interpolate.interp1d(psi,q)
 q1 = f(psi1)
 q1_calc = (a * Bt) / (R * Bp)
 
-print("\nq calculated @R from gfile:".format(R))
+qStar = 2*np.pi*a**2*kappa*ep.g['Bt0'] / (mu * ep.g['RmAxis'] * ep.g['Ip'])
+
+print("\nq95 calculated from gfile:".format(R))
+print(f(0.95))
+print("q calculated @R from gfile:".format(R))
 print(q1)
 print("q calculated @R from Ip and Bt:")
 print(q1_calc)
+print("q* calculated @R from Ip and Bt:")
+print(qStar)
 
-print(Raxis)
 # For putting in a google slide / Latex:
 #Bp = \frac{\mu_0 I_p}{2 \pi a} = \frac{(4 \pi \times 10^{-7} \text{T m/A}) (2 \text{MA}) }{2 \pi (0.12726 \text{m})} = 3.1433 \text{ T}
 #q = \frac{aB_t}{RB_p} = \frac{(0.12726 \text{m}) (2.1137 \text{T})}{(0.621875 \text{m})(0.72173 \text{T})} = 0.5993

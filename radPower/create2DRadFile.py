@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 #csv file
-pcFile = '/home/tom/source/dummyOutput/RZpower.CSV'
+pcFile = '/home/tom/source/dummyOutput/RZpower.csv'
 
 #create R,Z grid
 #rMin = 1.0 #meters
@@ -17,16 +17,16 @@ pcFile = '/home/tom/source/dummyOutput/RZpower.CSV'
 #zMax = 1.85
 #NZ = 50
 
-rMin = 1.0 #meters
-rMax = 2.0
-NR = 3
-zMin = -1.0
-zMax = 1.0
-NZ = 3
+rMin = 0.2 #meters
+rMax = 0.3
+NR = 5
+zMin = -0.1
+zMax = 0.1
+NZ = 5
 
 
 #minor radius
-a = 0.25
+a = 0.05
 #Total power
 Ptotal = 10 #MW
 
@@ -72,10 +72,10 @@ P = PDmatrix*V
 
 #save CSV file with R,Z,power
 pc = np.zeros((NR*NZ, 3))
-pc[:,0] = R.flatten()*1000.0 #convert to mm
-pc[:,1] = Z.flatten()*1000.0
+pc[:,0] = R.flatten()#*1000.0 #convert to mm
+pc[:,1] = Z.flatten()#*1000.0
 pc[:,2] = P.flatten()
-head = "R[mm],Z[mm],P[MW]"
+head = "R[m],Z[m],P[MW]"
 np.savetxt(pcFile, pc, delimiter=',',fmt='%.10f', header=head)
 
 
