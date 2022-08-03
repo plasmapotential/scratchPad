@@ -9,16 +9,16 @@ import numpy as np
 
 #use this to write an EPS file
 writeEPS = False
-epsFile = '/home/tom/phd/dissertation/diss/figures/castelTplot.eps'
+epsFile = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/images/castelTplot.svg'
 
 nombres = ['openFoamOpt','openFoamGyro']
 names = ['Ion Optical','Ion Gyro']
 #root = '/home/tom/HEAT/data/d3d_000002/openFoam/heatFoam/'
-root = '/home/tom/results/castellationTopDiamagnetic/nstx_204118_10eV_444/'
+root = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/'
 data = []
 for name in nombres:
-    outfile = root+name+'/heatFoam/castellation/postProcessing/fieldMinMax1/0/minMaxTnoTab.dat'
-    tmp = pd.read_csv(outfile, header=1)
+    outfile = root+name+'/heatFoam/castellation/postProcessing/fieldMinMax1/0/fieldMinMax.dat'
+    tmp = pd.read_csv(outfile, header=1, delimiter='\t')
     tmp.columns = tmp.columns.str.strip()
     tmp = tmp.sort_values('field')
     tmp['field'] = tmp['field'].str.strip()
@@ -58,7 +58,7 @@ fig.add_trace(go.Scatter(
     x=[0.05, t[-1]],
     y=[1873, 1873],
     mode="lines+markers+text",
-    name="Sublimation T",
+    name="Thermal Limit",
     text=["Limit", "Limit"],
     textposition="top center",
     line=dict(color='firebrick', width=3, dash='dot'),
@@ -109,7 +109,7 @@ fig.add_annotation(x=3.0, y=1000,
                 ),
             )
 fig.add_annotation(x=3.0, y=750,
-            text=r'$\text{Gyro T}_{peak} = 2631 K$',
+            text=r'$\text{Gyro T}_{peak} = 2581 K$',
             showarrow=False,
             font=dict(
                 size=26,

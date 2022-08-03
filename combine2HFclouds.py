@@ -9,11 +9,11 @@ tools.rootDir = HEATPath
 
 
 #heat fluxes we want in new files above thresh
-file1 = '/home/tom/results/castellationTopDiamagnetic/nstx_204118_10eV_444/castellationTop/HF_gyro.csv'
-file2 = '/home/tom/results/castellationTopDiamagnetic/nstx_204118_10eV_444/castellationTop/HF_optical.csv'
+file1 = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/nstx_204118_castellationGyro_555/000010/castellationTop/HF_gyro.csv'
+file2 = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/nstx_204118_castellationGyro_555/000010/castellationTop/HF_optical.csv'
 
 #heat fluxes we are using as a boundary condition at lower resolution
-file3 = '/home/tom/results/castellationTopDiamagnetic/lowRes_entireCastellation/castellation/HF_optical.csv'
+file3 = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/lowRes_entireCastellation_oldAlgorithmsOct2021/castellation/HF_optical.csv'
 
 #threshold.  points above this threshold will be taken from file1 and file2
 #points below it will be taken from file 3
@@ -50,7 +50,7 @@ xyzNew = np.append(xyz1[useUp,:], xyz3[useDown,:], axis=0)
 q_allSourcesNew = q_gyroNew + q_optNew
 
 #save new pointclouds
-newDir = '/home/tom/results/castellationTopDiamagnetic/newPointClouds/'
+newDir = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/newPointClouds/'
 newFile1 = newDir + 'HF_optical.csv'
 newFile2 = newDir + 'HF_gyro.csv'
 newFile3 = newDir + 'HF_allSources.csv'
@@ -66,7 +66,7 @@ pc[:,3] = q_allSourcesNew
 np.savetxt(newFile3, pc, delimiter=',',fmt='%.10f', header=head)
 
 #create vtk files
-pvpythonCMD = '/opt/paraview/ParaView-5.9.0-RC2-MPI-Linux-Python3.8-64bit/bin/pvpython'
+pvpythonCMD = '/opt/paraview/ParaView-5.10.1-MPI-Linux-Python3.9-x86_64/bin/pvpython'
 os.environ["pvpythonCMD"] = pvpythonCMD
 tools.createVTKOutput(newFile1, 'points', 'HF_optical')
 tools.createVTKOutput(newFile2, 'points', 'HF_gyro')

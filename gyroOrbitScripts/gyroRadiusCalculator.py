@@ -1,11 +1,11 @@
 import numpy as np
 
 #deuterium
-ionMassAMU = 2.0
+ionMassAMU = 3.0
 #electrons
 electronMassAMU = 1.0 / 1836
-T_eV = 10 #eV
-B = 1.1 #T
+T_eV = 10000 #eV
+B = 12 #T
 
 kg2eV = 5.609e35 #1kg = 5.609e35 eV/c^2
 eV2K = 1.160e4 #1ev=1.160e4 K

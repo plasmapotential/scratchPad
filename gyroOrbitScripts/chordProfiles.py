@@ -33,7 +33,7 @@ if mode == 'toroidal':
     #tileEnd = 29.0
     #tileTop = -1.0
     #tileX0 = 0.0
-    #tileX1 = 28.3
+    #tileX1 = 28.4
 
 #poloidal
 else:
@@ -42,10 +42,10 @@ else:
     #for nstxu castellation
     #pt0 = np.array([489.315,280.878,-1603.3])
     #tileX0 = 0.0
-    #tileX1 = 29.8
+    #tileX1 = 28.0
 
 #max distance from the slice that we include points from on either side
-threshDist = 0.5 #mm
+threshDist = 0.25 #mm
 
 #use this to flip plot around (right=>left starting point)
 flip = True
@@ -65,16 +65,16 @@ addBox = False
 addArrow = False
 
 #use this to write an EPS file
-writeEPS = False
-#epsFile = '/home/tom/phd/dissertation/diss/figures/sPolCubeHF.eps'
+writeEPS = True
+epsFile = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/images/sTor10v100.svg'
 
 #location of HF csv files (here we have three)
 #file1 = '/home/tom/HEAT/data/nstx_204118/001004/Cube/HF_optical.csv'
 #file2 = '/home/tom/HEAT/data/nstx_204118/001004/Cube/HF_gyro.csv'
 #file3 = '/home/tom/HEAT/data/nstx_204118/001004/Cube/HF_allSources.csv'
-file1 = '/home/tom/results/gyroConvergence2/diamagnetic/10eV/5gP5vP5vS/HF_optical.csv'
-file2 = '/home/tom/results/gyroConvergence2/diamagnetic/10eV/5gP5vP5vS/HF_gyro.csv'
-file3 = '/home/tom/results/gyroConvergence2/diamagnetic/10eV/5gP5vP5vS/HF_allSources.csv'
+#file1 = '/home/tom/results/gyroConvergence2/diamagnetic/10eV/5gP5vP5vS/HF_optical.csv'
+#file2 = '/home/tom/results/gyroConvergence2/diamagnetic/10eV/5gP5vP5vS/HF_gyro.csv'
+#file3 = '/home/tom/results/gyroConvergence2/diamagnetic/10eV/5gP5vP5vS/HF_allSources.csv'
 #file1 = '/home/tom/results/gyroConvergence2/10eV/3gP3vP3vS/HF_optical.csv'
 #file2 = '/home/tom/results/gyroConvergence2/10eV/3gP3vP3vS/HF_gyro.csv'
 #file3 = '/home/tom/results/gyroConvergence2/10eV/3gP3vP3vS/HF_allSources.csv'
@@ -85,6 +85,21 @@ file3 = '/home/tom/results/gyroConvergence2/diamagnetic/10eV/5gP5vP5vS/HF_allSou
 #file1 = '/home/tom/results/castellationTopDiamagnetic/newPointClouds/HF_optical.csv'
 #file2 = '/home/tom/results/castellationTopDiamagnetic/newPointClouds/HF_gyro.csv'
 #file3 = '/home/tom/results/castellationTopDiamagnetic/newPointClouds/HF_allSources.csv'
+#
+#after referee reviews:
+#gunn/komm plots
+#file1 = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_v3/nstx_204118_GunnReplicate1_555/001004/Cube/HF_optical.csv'
+#file2 = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_v3/nstx_204118_GunnReplicate1_555/001004/Cube/HF_gyro.csv'
+#file3 = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_v3/nstx_204118_GunnReplicate1_555/001004/Cube/HF_allSources.csv'
+#castellation
+#file1 = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/nstx_204118_castellationGyro_555/000010/castellationTop/HF_optical.csv'
+#file2 = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/nstx_204118_castellationGyro_555/000010/castellationTop/HF_gyro.csv'
+#file3 = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/nstx_204118_castellationGyro_555/000010/castellationTop/HF_allSources.csv'
+#gunn/komm plots comparing 10eV to 100eV
+file1 = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_v3/nstx_204118_GunnReplicate1_555/001004/Cube/HF_optical.csv'
+file2 = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_10eV_v_100eV/nstx_204118_GunnReplicate1_555_10eV_200um/001004/Cube/HF_gyro.csv'
+file3 = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_10eV_v_100eV/nstx_204118_GunnReplicate1_555_100eV_200um/001004/Cube/HF_gyro.csv'
+
 #===============================================================================
 
 data = pd.read_csv(file1)
@@ -243,13 +258,13 @@ if addBox == True:
     layer="below", line_width=0,
     ),
     fig.add_vrect(
-    x0=29.8, x1=35,
+    x0=28.0, x1=32,
     fillcolor="Gray", opacity=0.5,
     layer="below", line_width=0,
     ),
     #shade annotation
     fig.add_annotation(
-        x=32.0,
+        x=29.5,
         y=10.0,
         xref="x",
         yref="y",
@@ -314,17 +329,24 @@ if addBox == True:
 #this calculates the integrals under the curves
 gyroInt = np.trapz(q_gyro, s/1000.0)
 optInt = np.trapz(q_opt, s/1000.0)
-
+allInt = np.trapz(q_all, s/1000.0)
 print("Gyro Integral:")
 print(gyroInt)
 print("Optical Integral:")
 print(optInt)
-
-fig.add_trace(go.Scatter(x=s-s[loc0], y=q_gyro, name="Ion Gyro", line=dict(color='royalblue', width=4, dash='solid'),
-                         mode='lines', marker_symbol='circle', marker_size=6))
-fig.add_trace(go.Scatter(x=s-s[loc0], y=q_opt, name="Ion Optical", line=dict(color='rgb(17,119,51)', width=4, dash='solid'),
+print("All Integral:")
+print(allInt)
+fig.add_trace(go.Scatter(x=s-s[loc0], y=q_opt, name="Optical", line=dict(color='rgb(255, 0, 179)', width=2, dash='dashdot'),
                          mode='lines', marker_symbol='cross', marker_size=6))
+fig.add_trace(go.Scatter(x=s-s[loc0], y=q_gyro, name="Ion Gyro at 10eV", line=dict(color='royalblue', width=2, dash='solid'),
+                         mode='lines', marker_symbol='circle', marker_size=4))
+fig.add_trace(go.Scatter(x=s-s[loc0], y=q_all, name="Ion Gyro at 100eV", line=dict(color='green', width=2, dash='dot'),
+                         mode='lines', marker_symbol='circle', marker_size=4))
 
+#fig.add_trace(go.Scatter(x=s-s[loc0], y=q_opt, name="Ion Optical", line=dict(color='rgb(255, 0, 179)', width=4, dash='dashdot'),
+#                         mode='lines', marker_symbol='cross', marker_size=6))
+#fig.add_trace(go.Scatter(x=s-s[loc0], y=q_gyro, name="Ion Gyro", line=dict(color='royalblue', width=2, dash='solid'),
+#                         mode='lines', marker_symbol='circle', marker_size=4))
 
 if addArrow == True:
     #Arrow
@@ -342,7 +364,7 @@ if addArrow == True:
         arrowhead=3,
         arrowsize=2,
         arrowwidth=4,
-        arrowcolor='fuchsia'
+        arrowcolor='rgb(97, 5, 163)'
     )
     fig.add_annotation(
         x=tileX1,  # arrows' head
@@ -358,11 +380,11 @@ if addArrow == True:
         arrowhead=3,
         arrowsize=2,
         arrowwidth=4,
-        arrowcolor='fuchsia'
+        arrowcolor='rgb(97, 5, 163)'
     )
 #Arrow Text
 fig.add_annotation(
-        x=15,
+        x=14,
         y=-0.6,
         xref="x",
         yref="y",
@@ -383,7 +405,7 @@ fig.add_annotation(
         bordercolor="#c7c7c7",
         borderwidth=2,
         borderpad=4,
-        bgcolor="fuchsia",
+        bgcolor='rgb(97, 5, 163)',
         opacity=0.8,
         )
 
@@ -393,7 +415,7 @@ xaxis_title=xAxisTitle,
 yaxis_title="Heat Flux $MW/m^2$",
 font=dict(
     family="Arial",
-    size=24,
+    size=20,
     color="Black"
 ),
 margin=dict(

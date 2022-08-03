@@ -7,12 +7,13 @@ import plotly.figure_factory as ff
 
 
 #prefix = '/home/tom/results/gyroConvergence2/diamagnetic/10eV/'
-prefix = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_v3/nstx_204118_GunnReplicate_'
+prefix = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_v3/nstx_204118_GunnReplicate1_'
+path = '/001004/Cube/'
 #use this to write an EPS file
 writeEPS = False
 #epsFile = '/home/tom/phd/dissertation/diss/figures/conv2Hist.eps'
 #epsFile = '/home/tom/work/ORNL_postdoc/manuscripts/2022_NF_NSTXUgyro/NF_rev1/figures/conv2Hist.eps'
-epsFile = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_v3/images/conv2Hist.eps'
+epsFile = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_v3/images/conv2Hist.svg'
 
 #for the old convergence test with plane (ie not a cube shape)
 #cases = [
@@ -35,14 +36,20 @@ epsFile = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_v3/images/conv2Hist.ep
 #truthFile = prefix+'12gP_12vP_12vS/HF_gyro_all.csv'
 
 #for the case with the cube and diamagnetism turned on
+#cases = [
+#            '1gP1vP1vS',
+#            '2gP2vP2vS',
+#            '3gP3vP3vS',
+#            '4gP4vP4vS',
+#        ]
 cases = [
-            '1gP1vP1vS',
-            '2gP2vP2vS',
-            '3gP3vP3vS',
-            '4gP4vP4vS',
+            '111',
+            '222',
+            '333',
+            '444',
         ]
 #get 555 as ground truth
-truthFile = prefix+'5gP5vP5vS/HF_gyro.csv'
+truthFile = prefix+'555'+path+'HF_gyro.csv'
 
 
 #labels = [
@@ -79,7 +86,7 @@ qGyroData = []
 for case in cases:
     #for old plane convergence tests (not cube)
     #file = prefix+case+'/HF_gyro_all.csv'
-    file = prefix+case+'/HF_gyro.csv'
+    file = prefix+case+path+'HF_gyro.csv'
     data = pd.read_csv(file)
     qGyroData.append(data.iloc[:,3].values)
 
@@ -110,7 +117,7 @@ df.columns=labels2
 #fig = px.histogram(df, marginal="box", barmode='overlay', range_x=[-75,75], opacity=0.6, log_y=True, color_discrete_sequence=px.colors.qualitative.G10)
 #histogram with rug plot overlay
 #fig = px.histogram(df, marginal="rug", barmode='overlay', range_x=[-75,75], opacity=0.6, log_y=True, color_discrete_sequence=px.colors.qualitative.G10)
-fig = px.histogram(df, barmode='overlay', range_x=[-75,75], opacity=0.6, log_y=True, color_discrete_sequence=px.colors.qualitative.G10)
+fig = px.histogram(df, barmode='overlay', range_x=[-50,50], opacity=0.6, log_y=True, color_discrete_sequence=px.colors.qualitative.G10)
 
 #histogram with no box plot
 #fig = px.histogram(df, barmode='overlay', range_x=[-75,75], opacity=0.6, log_y=True, color_discrete_sequence=px.colors.qualitative.G10)
