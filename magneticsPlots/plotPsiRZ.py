@@ -11,9 +11,10 @@ import matplotlib.pyplot as plt
 #gFilePath = '/home/tom/HEATtest/chrisST40/v3Div/g000001.00001'
 #gFilePath = '/home/tom/HEATtest/chrisST40/v3Div/g000001.00001_psiDiv2pi'
 #gFilePath = '/home/tom/HEATtest/NSTXU/limiter/g204118.00113'
-gFilePath = '/home/tom/HEATtest/NSTXU/test/g204118.00100'
+#gFilePath = '/home/tom/HEATtest/NSTXU/test/g204118.00100'
 #gFilePath = '/home/tom/Downloads/g1210923001.01000'
-
+gFilePath = '/home/tom/work/CFS/GEQDSKs/TSCruns/TSC-V2h01/TSC-V2h01/corrected_v2y_Ip_Bt_psi_Fpol/withTimesteps/g000001.00400'
+gFilePath = '/home/tom/work/CFS/GEQDSKs/TSCruns/TSC-V2h01/TSC-V2h01/corrected_v2y_Ip_Bt_psi_Fpol/interpolated/g000001.00400'
 MHD = MHDClass.setupForTerminalUse(gFile=gFilePath)
 ep = MHD.ep
 
@@ -77,9 +78,9 @@ else:
 rbdry = ep.g['lcfs'][:,0]
 zbdry = ep.g['lcfs'][:,1]
 
-rlim, zlim = nstxu_wall(oldwall=False) #FOR NSTXU
-#rlim = ep.g['wall'][:,0]
-#rlim = ep.g['wall'][:,1]
+#rlim, zlim = nstxu_wall(oldwall=False) #FOR NSTXU
+rlim = ep.g['wall'][:,0]
+zlim = ep.g['wall'][:,1]
 
 height=1000
 aspect = (z.max()-z.min()) / (r.max()-r.min())
