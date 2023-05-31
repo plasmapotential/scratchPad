@@ -1,9 +1,9 @@
 
 import open3d as o3d
 import gmsh
-f = '/home/tom/HEATruns/MEQscans/sparc/test.stl'
-f2 = '/home/tom/HEATruns/MEQscans/sparc/test2.stl'
-f3 = '/home/tom/HEATruns/MEQscans/sparc/test3.step'
+f = '/home/tom/HEATruns/MEQscans/CAD/test.stl'
+f2 = '/home/tom/HEATruns/MEQscans/CAD/test2.stl'
+f3 = '/home/tom/HEATruns/MEQscans/CAD/test3.step'
 
 gmsh.initialize()
 gmsh.model.occ.importShapes(f3)
