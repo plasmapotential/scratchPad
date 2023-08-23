@@ -15,7 +15,7 @@ import shutil
 #you need equilParams_class to run this script
 #if you dont have it you can run in the HEAT docker container and point EFITpath
 #to /root/source
-EFITpath = '/home/tlooby/source'
+EFITpath = '/home/tom/source'
 sys.path.append(EFITpath)
 import EFIT.equilParams_class as EP
 from scipy.interpolate import interp1d
@@ -151,8 +151,8 @@ numS=1000
 #end of divertor:
 
 #for entire lower divertor
-minS=1.1
-maxS= 2.6
+#minS=1.1
+#maxS= 2.6
 
 #for inner divertor
 #minS=1.1
@@ -167,8 +167,8 @@ maxS= 2.6
 #maxS = 1.451
 
 #for T4:
-#minS = 1.632
-#maxS = 1.893
+minS = 1.632
+maxS = 1.893
 
 #for T5B:
 #minS = 1.955
@@ -191,13 +191,13 @@ plotMaskContour = False
 #overlay strike points and lq widths
 plotSP = True
 #plot AOI over section of RZ wall contour with no PFC tile overlays
-plotMaskAOI = False
+plotMaskAOI = True
 #only plot a single tile (requires changing S min/max)
 plotMaskSingleT = False
 #plot AOI over section with PFC overlays
 plotMaskAllT = False
 #plot mins and maxes for all tiles for all timesteps
-minMaxMask = True
+minMaxMask = False
 #plot mins and maxes at the strike points for all timesteps
 AOIatSP = False
 
@@ -325,8 +325,14 @@ for gIdx,g in enumerate(gNames):
     Bp = np.sqrt(Brz[:,0]**2 + Brz[:,1]**2)
     Bt = ep.BtFunc.ev(R,Z)
     B = np.sqrt(Brz[:,0]**2 + Brz[:,1]**2 + Bt**2)
-    Brz[:,0] /= B
-    Brz[:,1] /= B
+
+    #total field
+    #Brz[:,0] /= B
+    #Brz[:,1] /= B
+
+    #poloidal field
+    Brz[:,0] /= Bp
+    Brz[:,1] /= Bp
 
     #test cases with predefined B field
     #Brz[:,0] = 0.0
@@ -743,7 +749,7 @@ if minMaxMask == True:
     symbols = SymbolValidator().values
 
     for i,arr in enumerate(AOIarray):
-        #fig1.add_trace(go.Scatter(x=x, y=arr[:,0], mode='markers', marker_symbol=symbols[i], marker=dict(color='blue',size=15), name='Minimum gIdx {:d}'.format(i)))
+        fig1.add_trace(go.Scatter(x=x, y=arr[:,0], mode='markers', marker_symbol=symbols[i], marker=dict(color='blue',size=15), name='Minimum gIdx {:d}'.format(i)))
         fig1.add_trace(go.Scatter(x=x, y=arr[:,1], mode='markers', marker_symbol=symbols[i], marker=dict(color='red',size=15), name='Maximum gIdx {:d}'.format(i)))
         minMaxArr[i,0:len(x)] = arr[:,0]
         minMaxArr[i,len(x):] = arr[:,1]
