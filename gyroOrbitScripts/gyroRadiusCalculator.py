@@ -1,10 +1,10 @@
 import numpy as np
 
-ionMassAMU = 2.0
+ionMassAMU = 2.515
 #electrons
 electronMassAMU = 1.0 / 1836
-T_eV = 1500 #eV
-B = 2.524 #T
+T_eV = 1000 #eV
+B = 13.0 #T
 
 kg2eV = 5.609e35 #1kg = 5.609e35 eV/c^2
 eV2K = 1.160e4 #1ev=1.160e4 K

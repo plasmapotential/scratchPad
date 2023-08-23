@@ -166,6 +166,10 @@ maxS= 2.6
 #minS = 1.335
 #maxS = 1.451
 
+#for T3:
+#minS = 1.455
+#maxS = 1.63
+
 #for T4:
 #minS = 1.632
 #maxS = 1.893
@@ -175,13 +179,15 @@ maxS= 2.6
 #maxS = 2.076
 
 #for T6:
-#minS = 2.416
-#maxS = 2.584
+minS = 2.416
+maxS = 2.584
 
 #tile index for plotting single tile green overlay
 Tidx = 4
 
 #masks
+#field mode (total vs poloidal)
+fieldMode = 'pol'
 #only plot section of RZ contour of wall
 sectionMask = True
 #interpolate the wall points to get higher resolution AOI
@@ -325,9 +331,15 @@ for gIdx,g in enumerate(gNames):
     Bp = np.sqrt(Brz[:,0]**2 + Brz[:,1]**2)
     Bt = ep.BtFunc.ev(R,Z)
     B = np.sqrt(Brz[:,0]**2 + Brz[:,1]**2 + Bt**2)
-    Brz[:,0] /= B
-    Brz[:,1] /= B
-
+    #for poloidal field
+    if fieldMode == 'pol':
+        print("Running in poloidal field mode!")
+        Brz[:,0] /= Bp
+        Brz[:,1] /= Bp
+    #for toroidal field
+    else:
+        Brz[:,0] /= B
+        Brz[:,1] /= B
     #test cases with predefined B field
     #Brz[:,0] = 0.0
     #Brz[:,1] = -1.0
@@ -341,7 +353,6 @@ for gIdx,g in enumerate(gNames):
     #calculate angle of incidence
     bdotn = np.multiply(Brz, newNorms2D).sum(1)
     AOI = np.degrees(np.arcsin(bdotn))
-    print(AOI)
 
     #calculate lambda_q at SPs
     lq = 0.0003 #in meters at OMP
@@ -353,8 +364,7 @@ for gIdx,g in enumerate(gNames):
     R_omp = np.linspace(ep.g['RmAxis'], ep.g['R1'] + ep.g['Xdim'], 100)
     Z_omp = np.zeros(len(R_omp))
     psi_omp = ep.psiFunc.ev(R_omp,Z_omp)
-    print(psi_omp)
-    print(R_omp)
+
     try:
         f = scinter.UnivariateSpline(psi_omp, R_omp, s = 0, ext = 'const')
     except:
@@ -542,7 +552,10 @@ for gIdx,g in enumerate(gNames):
         fig.add_trace(go.Scatter(x=newDistCtrs[idxDistCtrs], y=AOI[idxDistCtrs], mode='lines+markers', name=gNames[gIdx].split('.')[0]))
         fig.update_layout(showlegend=False)
         fig.update_xaxes(title="Distance Along Contour [m]")
-        fig.update_yaxes(title="Angle of Incidence [degrees]")
+        if fieldMode=='pol':
+            fig.update_yaxes(title="Poloidal Angle of Incidence [degrees]")
+        else:
+            fig.update_yaxes(title="Angle of Incidence [degrees]")
 
         #overlay SP and +/- Nlqs away
         if plotSP == True:
@@ -591,7 +604,10 @@ for gIdx,g in enumerate(gNames):
                 fig.add_vline(x=S-Slqs[i], line_width=4, line_dash="dot")
         fig.update_layout(showlegend=False)
         fig.update_xaxes(title="Distance Along Contour [m]")
-        fig.update_yaxes(title="Angle of Incidence [degrees]")
+        if fieldMode=='pol':
+            fig.update_yaxes(title="Poloidal Angle of Incidence [degrees]")
+        else:
+            fig.update_yaxes(title="Angle of Incidence [degrees]")
         fig.update_xaxes(range=[minS-0.03, maxS+0.03])
         fig.update_yaxes(range=[-8, 8])
         fig.show()
@@ -626,7 +642,10 @@ for gIdx,g in enumerate(gNames):
             x=0.01
             ))
         fig.update_xaxes(title="Distance Along Contour [m]")
-        fig.update_yaxes(title="Angle of Incidence [degrees]")
+        if fieldMode=='pol':
+            fig.update_yaxes(title="Poloidal Angle of Incidence [degrees]")
+        else:
+            fig.update_yaxes(title="Angle of Incidence [degrees]")
         fig.update_xaxes(range=[minS-0.03, maxS+0.03])
         fig.update_yaxes(range=[-8, 8])
         fig.show()
