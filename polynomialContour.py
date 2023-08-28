@@ -47,7 +47,6 @@ use = np.where(np.abs(z)>1e-1)
 fig = go.Figure()
 
 fig.add_trace(go.Contour(x=c2, y=c4, z=z))
-
 fig.add_trace(go.Scatter(x=c2, y=c4Fromc2(6, 0, 67.5, c2)))
 #fig.add_trace(go.Scatter(x=c2Fromc4(6, 0, 67.5, c2), y=c4))
 
