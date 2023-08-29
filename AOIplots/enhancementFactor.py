@@ -13,16 +13,16 @@ import plotly.graph_objects as go
 #h_p = 579.0e-6 #[m]
 #R_sp = 1.72 #[m]
 #aoi = 4.31 #degrees
-aoi = 9.0 #degrees
+#aoi = 9.0 #degrees
 
 #T4
 tileName = 'T4'
-h_s = 138e-6
+h_s = 138e-6 #+ 50e-6
 h_c = 440e-6
 h_p = 1175e-6
 R_sp = 1.66474 #[m]
 #aoi = 1.02 #[degrees]
-aoi = 0.3 #[degrees]
+aoi = 1.0 #[degrees]
 aoiDesign = 2.0 #degrees
 #angle of incidence
 
