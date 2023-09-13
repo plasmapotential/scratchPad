@@ -1,7 +1,5 @@
 #
 import numpy as np
-import plotly.graph_objects as go
-
 
 class poly:
     """
@@ -9,7 +7,7 @@ class poly:
     """
     def __init__(self, coeffs):
         self.c = coeffs
-        self.dc = self.polyDerivative(c)
+        self.dc = self.polyDerivative(self.c)
         self.p = np.polynomial.Polynomial(self.c, domain=None, window=None)
         self.dp = np.polynomial.Polynomial(self.dc, domain=None, window=None)
         return
@@ -64,6 +62,13 @@ class poly:
         self.endPts = self.ctrs + self.norms*mag
         return
 
+    def buildPhiEndPoints(self, mag):
+        """
+        builds an array of endpoints for normal vectors (for plotting)
+        """
+        self.endPtsPhi = self.ctrs + self.phi*mag
+        return
+
     def centers(self, rz):
         centers = np.zeros((len(rz)-1, 2))
         dR = np.diff(rz[:,0])
@@ -71,80 +76,41 @@ class poly:
         centers[:,0] = rz[:-1,0] + dR/2.0
         centers[:,1] = rz[:-1,1] + dZ/2.0
         return centers
+    
+    def localPhi(self, R0):
+        """
+        calculate the local phi vector at each ctr point
+        given a radius of R0 at the polynomial apex
+        """
+        rVec = np.zeros((len(self.ctrs), 3))
+        rVec[:,0] = self.c[0] - self.ctrs[:,1] + R0
+        rVec[:,1] = self.ctrs[:,0]
+        rMag = np.linalg.norm(rVec, axis=1)
+        rVec[:,0] = rVec[:,0] / rMag
+        rVec[:,1] = rVec[:,1] / rMag
+
+        zVec = np.array([0.0, 0.0, 1.0])
+        phi = np.cross(rVec, zVec)
+
+        self.phi = np.zeros((self.ctrs.shape))
+        self.phi[:,0] = phi[:,1]
+        self.phi[:,1] = -phi[:,0]
+        return
+    
+    def qParallel(self, lq, gap=0.0):
+        """
+        calculates q|| given lq, the decay length for an exponential profile
+        assumes separatrix is on tile apex unless a gap is specified in mm
+        """
+        r = self.c[0] - self.ctrs[:,1] + gap
+        q = np.exp(-r / lq)
+
+        return q
+
+    
+
 
         
 
-
-
-
-
-
-topPt = np.array([0.0, 6.0])
-btmPt = np.array([67.5, 0.0])
-x = np.linspace(topPt[0],btmPt[0],50)
-
-#define flux vector
-qVec = np.array([0.0, 1.0, 0.0])
-
-
-
-#number of polys
-N = 1
-
-c0 = 6.0
-c2Max = -c0 / btmPt[0]**2
-c4Max = -c0 / btmPt[0]**4
-c2 = np.linspace(c2Max, 0, N)
-
-def c2Fromc4(c0, y, x, c4):
-    return (y-c0-c4*x**4)/x**2
-
-def c4Fromc2(c0, y, x, c2):
-    return (y-c0-c2*x**2)/x**4
-
-
-
-
-
-
-
-#use this to plot all solutions (some not zero intersecting)
-#c4 = np.linspace(c4Max, 0, N)
-#use this to only plot zero intersection solutions
-c4 = c4Fromc2(c0, 0.0, 67.5, c2)
-
-coeffs = np.zeros((N, 5))
-coeffs[:,0] = c0
-coeffs[:,2] = c2
-coeffs[:,4] = c4
-c = coeffs[0,:]
-
-
-p1 = poly(c)
-p1.evalOnX(x)
-p1.buildNormalEndPoints(5.0)
-
-#idx = 50
-#ptX = x[idx]
-#ptY = p(ptX)
-#dpPt = dp(ptX)
-#dx = 5.0
-#pt2X = ptX + dx
-#pt2Y = ptY + dpPt*dx
-#fig.add_trace(go.Scatter(x=[ptX, pt2X], y=[ptY, pt2Y]))
-
-
-fig = go.Figure()
-fig.add_trace(go.Scatter(x=x, y=p1.yArr[:,1]))
-
-#for visualizing normal vectors
-for i,pt in enumerate(p1.endPts):
-    vecX = [p1.ctrs[i,0], p1.endPts[i,0]]
-    vecY = [p1.ctrs[i,1], p1.endPts[i,1]]
-    fig.add_trace(go.Scatter(x=vecX, y=vecY))
-
-
-fig.update_yaxes(scaleanchor = "x",scaleratio = 1,)
-fig.show()
 
 

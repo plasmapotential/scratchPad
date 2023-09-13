@@ -3,7 +3,8 @@ import numpy as np
 import plotly.graph_objects as go
 
 topPt = np.array([0.0, 6.0])
-btmPt = np.array([67.5, 0.0])
+btmPt = np.array([5.0, 0.0])
+#btmPt = np.array([67.5, 0.0])
 
 coeffs = [
             [6.0, 0.0, -0.001, 0.0, -6.95e-8, 0.0, 0.0],
@@ -12,6 +13,8 @@ coeffs = [
             [6.0, 0.0, -0.00086, 0.0, -1e-7, 0.0, 0.0],   
        
         ]
+
+coeffs = [[10.0, 0.0, -0.2, 0.0]]
 
 x = np.linspace(topPt[0],btmPt[0],100)
 

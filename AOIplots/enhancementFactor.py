@@ -17,7 +17,7 @@ import plotly.graph_objects as go
 
 #T4
 tileName = 'T4'
-h_s = 138e-6 #+ 50e-6
+h_s = 138e-6 #+ 100e-6
 h_c = 440e-6
 h_p = 1175e-6
 R_sp = 1.66474 #[m]
