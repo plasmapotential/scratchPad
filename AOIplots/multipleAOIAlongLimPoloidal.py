@@ -15,7 +15,7 @@ import shutil
 #you need equilParams_class to run this script
 #if you dont have it you can run in the HEAT docker container and point EFITpath
 #to /root/source
-EFITpath = '/home/tom/source'
+EFITpath = '/home/tlooby/source'
 sys.path.append(EFITpath)
 import EFIT.equilParams_class as EP
 from scipy.interpolate import interp1d
@@ -82,39 +82,80 @@ from scipy.interpolate import interp1d
 #]
 
 #v3b points for overlays
-points = ([
-            [1.38510000,-1.11540000],
-            [1.29490000,-1.22360000],
-            [1.32000000,-1.21000000],
-            [1.44070000,-1.20900000],
-            [1.44070000,-1.21000000],
-            #[1.50930000,-1.20900000],
-            [1.57080000,-1.29640000],
-            [1.57000000,-1.29700000],
-            [1.72000000,-1.51000000],
-            [1.72000000,-1.51000000],
-            #[1.72000000,-1.57500000],
-            #[1.84000000,-1.57500000],
-            #[1.84000000,-1.38000000],
-            [1.69500000,-1.38000000],
-            [1.69500000,-1.38000000],
-            [1.65850000,-1.21770000]
-        ])
+#points = ([
+#            [1.38510000,-1.11540000],
+#            [1.29490000,-1.22360000],
+#            [1.32000000,-1.21000000],
+#            [1.44070000,-1.20900000],
+#            [1.44070000,-1.21000000],
+#            #[1.50930000,-1.20900000],
+#            [1.57080000,-1.29640000],
+#            [1.57000000,-1.29700000],
+#            [1.72000000,-1.51000000],
+#            [1.72000000,-1.51000000],
+#            #[1.72000000,-1.57500000],
+#            #[1.84000000,-1.57500000],
+#            #[1.84000000,-1.38000000],
+#            [1.69500000,-1.38000000],
+#            [1.69500000,-1.38000000],
+#            [1.65850000,-1.21770000]
+#        ])
 
-SPts = ([
-        1.16415304,
-        1.30501922,
-        1.33356690,
-        1.450642,
-        1.45888,
-        #1.520267,
-        1.627867,
-        1.632236,
-        1.890172,
-        1.894041,
-        2.415766,
-        2.419635,
-        2.580192,
+#v3c points for overlays
+points = np.array([
+    [1417.048575,-1079.679171],
+    [1387.427098,-1117.237672],
+    [1386.64191,-1116.618414],
+    [1305.519082,-1219.477963],
+    [1320,-1210],
+    [1440.7,-1210],
+    [1440.7,-1209],
+    [1483.345123,-1209],
+    [1486.943606,-1209.129659],
+    [1493.207236,-1209.982261],
+    [1499.313231,-1211.618363],
+    [1505.163991,-1214.011813],
+    [1510.665999,-1217.124354],
+    [1515.73131,-1220.906236],
+    [1520.27896,-1225.297008],
+    [1524.236259,-1230.226489],
+    [1570.8,-1296.4],
+    [1570,-1297],
+    [1720,-1510],
+    [1720,-1575],
+    [1840,-1575],
+    [1840,-1380],
+    [1695,-1380],
+    [1658.5,-1217.7],
+    ]) / 1000.0
+
+points = np.round(points, 8)
+
+SPts = np.array([
+1.11120578,
+1.15903959 ,
+1.16003959 ,
+1.29103959 ,
+1.30834649 ,
+1.42904649 ,
+1.43004649,
+1.47269161 ,
+1.47629243 ,
+1.48261382 ,
+1.48893521 ,
+1.4952566  ,
+1.501578,
+1.50789939 ,
+1.51422078 ,
+1.52054217 ,
+1.60145642 ,
+1.60245642 ,
+1.86297322,
+1.92797322 ,
+2.04797322 ,
+2.24297322 ,
+2.38797322 ,
+2.55432688 ,
         ])
 #tile lower bounds S for overlay rectangles
 tileLos = np.array(
@@ -167,12 +208,13 @@ numS=1000
 #maxS = 1.451
 
 #for T4:
-minS = 1.632
-maxS = 1.893
+
+minS = 1.603
+maxS = 1.862
 
 #for T5B:
-#minS = 1.955
-#maxS = 2.076
+#minS = 1.92797322
+#maxS = 2.04797322
 
 #for T6:
 #minS = 2.416
@@ -200,6 +242,8 @@ plotMaskAllT = False
 minMaxMask = False
 #plot mins and maxes at the strike points for all timesteps
 AOIatSP = False
+#plot flux expansion
+fxPlot = True
 
 #output CSV file
 minMaxCSV = '/home/tlooby/projects/EQ_devon/output/minMax.csv'
@@ -233,7 +277,8 @@ def centers(rz):
 #geqdsk files
 #gPath = '/home/tom/work/CFS/GEQDSKs/sweep7_v2y/'
 #gPath = '/home/tom/HEATruns/SPARC/sweep7_T5/originalGEQDSKs/'
-gPath = '/home/tlooby/projects/EQ_devon/tmp/'
+#gPath = '/home/tlooby/projects/EQ_devon/tmp/'
+gPath = '/home/tlooby/projects/dummy/staging/'
 gNames = [f.name for f in os.scandir(gPath)]
 gNames.sort()
 
@@ -249,7 +294,6 @@ for gIdx,g in enumerate(gNames):
     ep = EP.equilParams(gRenamed)
     data, idx = np.unique(ep.g['wall'], axis=0, return_index=True)
     rawdata = data[np.argsort(idx)]
-
 
     #close the contour (if necessary)
     if np.all(rawdata[-1] != rawdata[0]):
@@ -331,8 +375,8 @@ for gIdx,g in enumerate(gNames):
     #Brz[:,1] /= B
 
     #poloidal field
-    Brz[:,0] /= Bp
-    Brz[:,1] /= Bp
+    #Brz[:,0] /= Bp
+    #Brz[:,1] /= Bp
 
     #test cases with predefined B field
     #Brz[:,0] = 0.0
@@ -341,13 +385,12 @@ for gIdx,g in enumerate(gNames):
     #Brz[:,1] = (-1.6) - (-1.303)
     #Bt = ep.BtFunc.ev(R,Z)
     #B = np.sqrt(Brz[:,0]**2 + Brz[:,1]**2 + Bt**2)
-    #Brz[:,0] /= B
-    #Brz[:,1] /= B
+    Brz[:,0] /= B
+    Brz[:,1] /= B
 
     #calculate angle of incidence
     bdotn = np.multiply(Brz, newNorms2D).sum(1)
     AOI = np.degrees(np.arcsin(bdotn))
-    print(AOI)
 
     #calculate lambda_q at SPs
     lq = 0.0003 #in meters at OMP
@@ -445,7 +488,6 @@ for gIdx,g in enumerate(gNames):
     fx = (Bp_omp * R_omp_sol) / (Bp[SPidxs] * R[SPidxs]) * (1.0 / np.abs(thetadotn))
     lqAway = Nlqs*fx*lq
 
-
     #print S at each target start/end point
     ptIdxs = []
 #    print("R          Z          S")
@@ -453,8 +495,14 @@ for gIdx,g in enumerate(gNames):
         test0 = np.array(pt[0]==interpolated_points[:,0])
         test1 = np.array(pt[1]==interpolated_points[:,1])
         test = np.logical_and(test0,test1)
+        
         #test = pt in interpolated_points
-        iloc = np.where(test==True)[0][0]
+        try:
+            iloc = np.where(test==True)[0][0]
+        except:
+            print("problem with iloc.")
+            print("this sometime points to a mismatch between points and the geqdsk wall")
+            sys.exit()
         ptIdxs.append(iloc)
         line = "{:0.8f} {:0.8f} {:0.8f}".format(interpolated_points[iloc,0], interpolated_points[iloc,1], newdist[iloc])
 #        print(line)
@@ -641,7 +689,6 @@ for gIdx,g in enumerate(gNames):
     #print(Slqs)
     #print("Nlqs*lq via fx equation:")
     #print(lqAway)
-
 
     if AOIatSP == True:
         test = np.logical_and(np.array(SPs)>minS,np.array(SPs)<maxS )
