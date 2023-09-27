@@ -44,12 +44,12 @@ class bezier:
         return xvals, yvals
   
 
-    def evalOnX(self):
+    def evalOnX(self, Nx):
         """
         evaluates bezier, derivative, ctrs, normals, for user defined x values
         ctrs and norms are of dimension len(x)-1
         """
-        x, y = self.bezier_curve(self.pts)
+        x, y = self.bezier_curve(self.pts, Nx)
         dy = np.diff(y) / np.diff(x)
         dy = np.insert(dy, 0, 0)
 
@@ -129,3 +129,21 @@ class bezier:
         q = np.exp(-r / lq)
 
         return q
+
+    def calculateShadow2(self, alpha, x, y):
+        """
+        takes an angle of incidence, alpha, and calculates the width of the tile
+        top surface that is loaded, and the corresponding x coordinate
+        where the shadow begins (location of last shadow) x_tangent.  dependent
+        upon tile half width, w, and gap size, g 
+        """
+        #calculate the derivative of the profile, y
+        dydx = np.diff(y) / np.diff(x)
+        dydx = np.insert(dydx, 0, 0)
+
+        idx = np.argmin( np.abs(dydx + np.tan(alpha)) )
+
+        self.x_tangent = x[idx]
+
+        print("X location of last shadow (#2): {:f} [mm]".format(self.x_tangent))
+        return     

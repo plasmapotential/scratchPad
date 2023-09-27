@@ -15,8 +15,8 @@ import bezierClass
 #              User Inputs
 #================================================
 #polynomial or bezier curves
-polyMask = False
-bezierMask = True
+polyMask = True
+bezierMask = False
 
 #toroidal or poloidal contour
 torCurve = True
@@ -29,34 +29,31 @@ maxHFcsv = '/home/tlooby/projects/dummy/hfMax.csv'
 #lq in mm
 lq = 0.6
 #number of curves
-N = 7
+N = 10
 #q||0
 q0 = 6000.0 #MW/m2
 #gap between lcfs and tile surface [mm]
 gap = 0.0
 #gap between neighboring tiles [mm]
 g = 0.5
-#half width of tile [mm]
+#full width of tile [mm]
 if torCurve == True:
-    w = 67.5 #toroidal
+    w = 2.0*67.5 #toroidal
 else:
-    w = 13.42/2.0 #poloidal
+    w = 13.42 #poloidal
 #angle of incidence [degrees]
-a = 2.0
+a = 10.0
 alpha = np.radians(a)
-#number of points in curve
-Nx = 100
-
 
 if torCurve == True:
     topPt = np.array([0.0, 6.0]) #apex
-    btmPt = np.array([w, 0.0]) #end point
-    x = np.linspace(topPt[0],btmPt[0],Nx)
+    btmPt = np.array([w/2.0, 0.0]) #end point
+    x = np.linspace(topPt[0],btmPt[0],50)
 
 if polCurve == True:
     topPt = np.array([0.0, 1.0])
-    btmPt = np.array([w, 0.0])
-    x = np.linspace(topPt[0],btmPt[0],Nx)
+    btmPt = np.array([w/2.0, 0.0])
+    x = np.linspace(topPt[0],btmPt[0],50)
 
 
 #================================================
@@ -113,6 +110,8 @@ if bezierMask == True:
 
     dX = np.nanmax(basePts[:,0])
     dY = np.nanmax(basePts[:,1])
+    print(dX)
+    print(dY)
     points = []
     for i,s in enumerate(scanVals):
         newPts = basePts.copy()
@@ -124,7 +123,7 @@ if bezierMask == True:
     curves = []
     for i,p in enumerate(points):
         p1 = bezierClass.bezier(p)
-        p1.evalOnX(Nx)
+        p1.evalOnX()
         p1.localPhi(2480)
         p1.bdotn = np.sum(np.multiply(p1.norms, p1.phi), axis=1)
         p1.qPar = p1.qParallel(lq)
@@ -143,10 +142,10 @@ if bezierMask == True:
 HFarray = []
 if shadowMask == True:
     for i,p in enumerate(curves):
-        #p.calculateShadow(alpha, w, g)
-        p.calculateShadow2(alpha, p.yArr[:,0], p.yArr[:,1])
-        hot = np.where(p.ctrs[:,0]<p.x_tangent)[0]
+        p.calculateShadow(alpha, w, g)
+        hot = np.where(p.yArr[:,0]<p.x_tangent)[0]
         maxHF = max( np.abs(p.qPar[hot]*p.bdotn[hot]) )
+        print(maxHF)
         HFarray.append( maxHF )
 
 #save max HF line in csv file
@@ -205,8 +204,7 @@ for i,p in enumerate(curves):
     fig2.add_trace(go.Scatter(x=p.yArr[:,0], y=p.qPar, name="qPar{:d}".format(i)))
     #for visualizing HF (qPar * bdotn)
     if shadowMask == True:
-        hot = np.where(p.ctrs[:,0]<p.x_tangent)[0]
-        fig3.add_trace(go.Scatter(x=p.ctrs[hot,0], y=p.qPar[hot]*p.bdotn[hot], mode='lines', name="qDiv{:d}".format(i)))
+        fig3.add_trace(go.Scatter(x=p.yArr[hot,0], y=p.qPar[hot]*p.bdotn[hot], mode='lines', name="qDiv{:d}".format(i)))
     else:
         fig3.add_trace(go.Scatter(x=p.yArr[:,0], y=p.qPar*p.bdotn, name="qDiv{:d}".format(i)))
     fig3.update_yaxes(range=[-0.1, 0])
