@@ -37,7 +37,6 @@ class poly:
         #build arrays
         self.yArr = np.vstack([x,y]).T
         self.dyArr = np.vstack([x,dy]).T
-
         #calculate norms, ctrs
         self.ctrs = self.centers(self.yArr)
         self.norms = np.zeros((self.ctrs.shape))
@@ -84,24 +83,37 @@ class poly:
         centers[:,1] = rz[:-1,1] + dZ/2.0
         return centers
     
-    def localPhi(self, R0):
+    def localPhi(self, R0, mode, alpha=0.0, bDir=1.0):
         """
         calculate the local phi vector at each ctr point
         given a radius of R0 at the polynomial apex
+        mode is outerLim or innerLim
+
+        x coordinate corresponds to distance along poly
+        y coordinate corresponds to radial coordinate
+        z coordinate is orthogonal
         """
         rVec = np.zeros((len(self.ctrs), 3))
-        rVec[:,0] = self.c[0] - self.ctrs[:,1] + R0
-        rVec[:,1] = self.ctrs[:,0]
+        if mode == 'innerLim':
+            rVec[:,1] = (self.c[0] - self.ctrs[:,1]) + R0
+        else:
+            rVec[:,1] = R0 - (self.c[0] - self.ctrs[:,1])
+        rVec[:,0] = self.ctrs[:,0]
         rMag = np.linalg.norm(rVec, axis=1)
         rVec[:,0] = rVec[:,0] / rMag
         rVec[:,1] = rVec[:,1] / rMag
 
-        zVec = np.array([0.0, 0.0, 1.0])
+        zVec = np.array([0.0, 0.0, -1.0])
         phi = np.cross(rVec, zVec)
+        phi[:,0]*=-1.0*bDir #use bDir to flip toroidal coordinate
 
+        #add alpha to phi
+        a1 = np.arctan2(phi[:,1], phi[:,0]) - alpha
         self.phi = np.zeros((self.ctrs.shape))
-        self.phi[:,0] = phi[:,1]
-        self.phi[:,1] = -phi[:,0]
+        self.phi[:,1] = np.tan(a1)
+        self.phi[:,0] = bDir
+        phiMag = np.linalg.norm(self.phi, axis=1)
+        self.phi = self.phi / phiMag[:,np.newaxis]
         return
     
     def qParallel(self, lq, gap=0.0):
@@ -109,7 +121,8 @@ class poly:
         calculates q|| given lq, the decay length for an exponential profile
         assumes separatrix is on tile apex unless a gap is specified in mm
         """
-        r = self.c[0] - self.ctrs[:,1] + gap
+        #r = self.c[0] - self.ctrs[:,1] + gap
+        r = self.c[0] - self.yArr[:,1] + gap
         q = np.exp(-r / lq)
 
         return q
@@ -188,10 +201,28 @@ class poly:
         self.delta_h = delta_h
         return
 
-    
+    def ccw(self, A, B, C):
+        """Check the orientation of the triplet (A, B, C)"""
+        return (C[1]-A[1]) * (B[0]-A[0]) > (B[1]-A[1]) * (C[0]-A[0])
 
+    def do_intersect(self, A, B, C, D):
+        """Check if line segments AB and CD intersect"""
+        return (self.ccw(A, C, D) != self.ccw(B, C, D)) and (self.ccw(A, B, C) != self.ccw(A, B, D))
 
-        
+    def find_intersection(self, curve_points, line_segment):
+        """Check if the line segment intersects the curve.
 
+        Args:
+            curve_points: List of points representing the curve.
+            line_segment: List of two points representing the line segment.
+
+        Returns:
+            Index of the first point of the curve segment that was intersected.
+            Returns None if there's no intersection.
+        """
+        for i in range(len(curve_points) - 1):
+            if self.do_intersect(curve_points[i], curve_points[i+1], line_segment[0], line_segment[1]):
+                return i
+        return None
 
 

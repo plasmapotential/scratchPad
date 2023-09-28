@@ -49,14 +49,16 @@ class bezier:
         evaluates bezier, derivative, ctrs, normals, for user defined x values
         ctrs and norms are of dimension len(x)-1
         """
-        x, y = self.bezier_curve(self.pts, Nx)
+        x1, y1 = self.bezier_curve(self.pts, Nx)
+        x = np.flip(x)
+        y = np.flip(y)
+
         dy = np.diff(y) / np.diff(x)
         dy = np.insert(dy, 0, 0)
 
         #build arrays
         self.yArr = np.vstack([x,y]).T
         self.dyArr = np.vstack([x,dy]).T
-
         #calculate norms, ctrs
         self.ctrs = self.centers(self.yArr)
         self.norms = np.zeros((self.ctrs.shape))
@@ -100,24 +102,33 @@ class bezier:
         centers[:,1] = rz[:-1,1] + dZ/2.0
         return centers
     
-    def localPhi(self, R0):
+    def localPhi(self, R0, mode, alpha=0.0, bDir=1.0):
         """
         calculate the local phi vector at each ctr point
         given a radius of R0 at the polynomial apex
+        mode is outerLim or innerLim
         """
         rVec = np.zeros((len(self.ctrs), 3))
-        rVec[:,0] = self.pts[0,1] - self.ctrs[:,1] + R0
-        rVec[:,1] = self.ctrs[:,0]
+        if mode == 'innerLim':
+            rVec[:,1] = (self.c[0] - self.ctrs[:,1]) + R0
+        else:
+            rVec[:,1] = R0 - (self.c[0] - self.ctrs[:,1])
+        rVec[:,0] = self.ctrs[:,0]
         rMag = np.linalg.norm(rVec, axis=1)
         rVec[:,0] = rVec[:,0] / rMag
         rVec[:,1] = rVec[:,1] / rMag
 
-        zVec = np.array([0.0, 0.0, 1.0])
+        zVec = np.array([0.0, 0.0, -1.0])
         phi = np.cross(rVec, zVec)
+        phi[:,0]*=-1.0*bDir #use bDir to flip toroidal coordinate
 
+        #add alpha to phi
+        a1 = np.arctan2(phi[:,1], phi[:,0]) - alpha
         self.phi = np.zeros((self.ctrs.shape))
-        self.phi[:,0] = phi[:,1]
-        self.phi[:,1] = -phi[:,0]
+        self.phi[:,1] = np.tan(a1)
+        self.phi[:,0] = bDir
+        phiMag = np.linalg.norm(self.phi, axis=1)
+        self.phi = self.phi / phiMag[:,np.newaxis]
         return
     
     def qParallel(self, lq, gap=0.0):

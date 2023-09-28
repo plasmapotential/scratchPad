@@ -15,21 +15,28 @@ import bezierClass
 #              User Inputs
 #================================================
 #polynomial or bezier curves
-polyMask = False
-bezierMask = True
+polyMask = True
+if polyMask == False:
+    bezierMask = True
+else:
+    bezierMask = False
 
 #toroidal or poloidal contour
 torCurve = True
 polCurve = False
 
 #should we calculate shadows
-shadowMask = True
-maxHFcsv = '/home/tlooby/projects/dummy/hfMax.csv'
+shadowMask = False
+maxHFcsv = '/home/tom/work/CFS/projects/dummy/hfMax.csv'
+
+#inner or outer limiter
+#limType = 'outerLim'
+limType = 'innerLim'
 
 #lq in mm
 lq = 0.6
 #number of curves
-N = 7
+N = 1
 #q||0
 q0 = 6000.0 #MW/m2
 #gap between lcfs and tile surface [mm]
@@ -42,10 +49,12 @@ if torCurve == True:
 else:
     w = 13.42/2.0 #poloidal
 #angle of incidence [degrees]
-a = 2.0
+a = 10.0
 alpha = np.radians(a)
+#toroidal direction of power flow
+pwrDir = -1.0
 #number of points in curve
-Nx = 100
+Nx = 50
 
 
 if torCurve == True:
@@ -89,14 +98,12 @@ if polyMask == True:
     for i,c in enumerate(coeffs):
         p1 = polyClass.poly(c)
         p1.evalOnX(x)
-        p1.localPhi(2480)
+        p1.localPhi(2480, limType, alpha, pwrDir)
+        print(p1.phi)
         p1.bdotn = np.sum(np.multiply(p1.norms, p1.phi), axis=1)
         p1.qPar = p1.qParallel(lq, gap)
         curves.append(p1)
     
-    print(coeffs)
-
-
 #================================================
 #              Bezier Curves
 #================================================
@@ -119,13 +126,12 @@ if bezierMask == True:
         newPts[1,0] = s*dX
         points.append(newPts)
 
-    print(points)
     #points = np.array([[ [0,6], [10, 6.0], [40, 6.0], [67.5, 6], [67.5, 5],[67.5,0] ]])
     curves = []
     for i,p in enumerate(points):
         p1 = bezierClass.bezier(p)
         p1.evalOnX(Nx)
-        p1.localPhi(2480)
+        p1.localPhi(2480, limType, alpha)
         p1.bdotn = np.sum(np.multiply(p1.norms, p1.phi), axis=1)
         p1.qPar = p1.qParallel(lq)
         curves.append(p1)
@@ -142,6 +148,7 @@ if bezierMask == True:
 #================================================
 HFarray = []
 shadowEnds = []
+shadowIdx = []
 if shadowMask == True:
     for i,p in enumerate(curves):
         #p.calculateShadow(alpha, w, g)
@@ -149,7 +156,8 @@ if shadowMask == True:
         hot = np.where(p.ctrs[:,0]<p.x_tangent)[0]
         maxHF = max( np.abs(p.qPar[hot]*p.bdotn[hot]) )
         HFarray.append( maxHF )
-        shadowEnds.append(p.yArr[hot[0]])
+        shadowEnds.append(p.yArr[hot[-1]])
+        shadowIdx.append(hot[-1])
 
 #save max HF line in csv file
 with open(maxHFcsv,'a') as fd:
@@ -174,18 +182,28 @@ fig4 = go.Figure()
 #    fig.add_trace(go.Scatter(x=vecX, y=vecY))
 
 #for visualizing phi vectors
-#p1.buildPhiEndPoints(5.0)
-#for i,pt in enumerate(p1.endPtsPhi):
-#    vecX = [p1.ctrs[i,0], p1.endPtsPhi[i,0]]
-#    vecY = [p1.ctrs[i,1], p1.endPtsPhi[i,1]]
-#    fig.add_trace(go.Scatter(x=vecX, y=vecY))
+p1.buildPhiEndPoints(5.0)
+for i,pt in enumerate(p1.endPtsPhi):
+    vecX = [p1.ctrs[i,0], p1.endPtsPhi[i,0]]
+    vecY = [p1.ctrs[i,1], p1.endPtsPhi[i,1]]
+    fig.add_trace(go.Scatter(x=vecX, y=vecY))
 
 #for visualizing alpha vectors
-length = 5.0
-for i,pt in enumerate(shadowEnds):
-    vecY = [pt[1] + length*np.tan(alpha) / np.sqrt(np.tan(alpha)**2 + 1), pt[1] - length*np.tan(alpha) / np.sqrt(np.tan(alpha)**2 + 1)]
-    vecX = [pt[0] - np.sqrt(vecY[1]**2 - length**2), pt[0] + np.sqrt(vecY[1]**2 - length**2)]
-    fig.add_trace(go.Scatter(x=vecX, y=vecY))
+if shadowMask == True:
+    length = 5.0
+    for i,p in enumerate(curves):
+        pt = shadowEnds[i]
+        idx = shadowIdx[i]
+        norm = np.array([0.0, 0.0, 0.0])
+        norm[0] = p.norms[idx,0]
+        norm[1] = p.norms[idx,1]
+        phi = np.array([0.0, 0.0, 1.0])
+        tangents = np.cross(norm, phi)*length
+        xVec = [p.ctrs[idx,0], p.ctrs[idx,0]+tangents[0]]
+        yVec = [p.ctrs[idx,1], p.ctrs[idx,1]+tangents[1]]
+        fig.add_trace(go.Scatter(x=xVec, y=yVec))
+
+
 
 
 color = px.colors.qualitative.Plotly
@@ -217,14 +235,14 @@ for i,p in enumerate(curves):
         fig3.add_trace(go.Scatter(x=p.ctrs[hot,0], y=p.qPar[hot]*p.bdotn[hot], mode='lines', name="qDiv{:d}".format(i)))
     else:
         fig3.add_trace(go.Scatter(x=p.yArr[:,0], y=p.qPar*p.bdotn, name="qDiv{:d}".format(i)))
-    fig3.update_yaxes(range=[-0.1, 0])
+    #fig3.update_yaxes(range=[-0.1, 0])
 
 #max HF plot
 fig4.add_trace(go.Scatter(x=np.arange(N)+1, y=HFarray, mode='lines+markers', name="Max Surface Flux"))
 
 
 
-#fig.update_yaxes(scaleanchor = "x",scaleratio = 1,)
+fig.update_yaxes(scaleanchor = "x",scaleratio = 1,)
 
 fig.update_xaxes(title='[mm]')
 fig1.update_xaxes(title='[mm]')
@@ -238,11 +256,13 @@ fig4.update_xaxes(title='Polynomial #')
 fig4.update_yaxes(title='Max HF Fraction of q0')
 
 fig.show()
-#fig1.show()
+#bdotn plot
+fig1.show()
+#normalized q plot
 #fig2.show()
 #HF along contour plot
 fig3.show()
 #max HF plot
-fig4.show()
+#fig4.show()
 
 
