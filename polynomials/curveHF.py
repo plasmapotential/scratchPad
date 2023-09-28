@@ -141,6 +141,7 @@ if bezierMask == True:
 #              Shadowing
 #================================================
 HFarray = []
+shadowEnds = []
 if shadowMask == True:
     for i,p in enumerate(curves):
         #p.calculateShadow(alpha, w, g)
@@ -148,6 +149,7 @@ if shadowMask == True:
         hot = np.where(p.ctrs[:,0]<p.x_tangent)[0]
         maxHF = max( np.abs(p.qPar[hot]*p.bdotn[hot]) )
         HFarray.append( maxHF )
+        shadowEnds.append(p.yArr[hot[0]])
 
 #save max HF line in csv file
 with open(maxHFcsv,'a') as fd:
@@ -178,6 +180,12 @@ fig4 = go.Figure()
 #    vecY = [p1.ctrs[i,1], p1.endPtsPhi[i,1]]
 #    fig.add_trace(go.Scatter(x=vecX, y=vecY))
 
+#for visualizing alpha vectors
+length = 5.0
+for i,pt in enumerate(shadowEnds):
+    vecY = [pt[1] + length*np.tan(alpha) / np.sqrt(np.tan(alpha)**2 + 1), pt[1] - length*np.tan(alpha) / np.sqrt(np.tan(alpha)**2 + 1)]
+    vecX = [pt[0] - np.sqrt(vecY[1]**2 - length**2), pt[0] + np.sqrt(vecY[1]**2 - length**2)]
+    fig.add_trace(go.Scatter(x=vecX, y=vecY))
 
 
 color = px.colors.qualitative.Plotly
