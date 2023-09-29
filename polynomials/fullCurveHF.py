@@ -15,7 +15,7 @@ import bezierClass
 #              User Inputs
 #================================================
 #polynomial or bezier curves
-polyMask = True
+polyMask = False
 if polyMask == False:
     bezierMask = True
 else:
@@ -24,8 +24,9 @@ else:
 #calculate shadowing
 shadowMask = True
 #save maxHF csv
-saveCSV = False
-maxHFcsv = '/home/tom/work/CFS/projects/dummy/hfMax.csv'
+saveCSVmaxHF = True
+saveCSVmaxHFlq = False
+maxHFcsv = '/home/tlooby/projects/dummy/hfMax.csv'
 #tile width [mm]
 w = 135.0
 #gap between tiles [mm]
@@ -54,6 +55,13 @@ lq = 0.6
 #get between wall and lcfs
 gapLCFS = 0.0
 
+
+#for only showing specific curve #s (set to all false then true the ones you want)
+#all
+polyNmask = [True]*N
+#user specified 
+#polyNmask = [False]*N
+#polyNmask[3] = True
 
 #================================================
 #              Polynomials
@@ -90,6 +98,7 @@ if polyMask == True:
         p1.qPar = p1.qParallel(lq, gapLCFS)
         curves.append(p1)
 
+    #print(coeffs)
 
 #================================================
 #              Bezier Curves
@@ -100,8 +109,8 @@ if bezierMask == True:
     #points that define the block we will machine (part outline)
     # change x axis control point
     #basePts = np.array([[0.0,6.0], [np.nan, 6.0], [67.5, 0.0]])
-    basePts = np.array([[0.0,ctrPt[1]], [np.nan, ctrPt[1]], [rightPt[0]*0.9, ctrPt[1]*0.67],  [rightPt[0], 0.0]])
-
+    basePts = np.array([[0.0,ctrPt[1]], [np.nan, ctrPt[1]], [rightPt[0]*0.9, ctrPt[1]*0.8],  [rightPt[0], 0.0]])
+    print(basePts)
     # change y axis control point
     #basePts = np.array([[0.0,6.0], [67.5, 6.0], [67.5, np.nan], [67.5, 0.0]])
 
@@ -118,9 +127,9 @@ if bezierMask == True:
     for i,p in enumerate(points):
         p1 = bezierClass.bezier(p)
         p1.evalOnX(Nx)
-        #p1.localPhi(2480, limType, alpha)
-        #p1.bdotn = np.sum(np.multiply(p1.norms, p1.phi), axis=1)
-        #p1.qPar = p1.qParallel(lq)
+        p1.localPhi(2480, limType, alpha, bDir)
+        p1.bdotn = np.sum(np.multiply(p1.norms, p1.phi), axis=1)
+        p1.qPar = p1.qParallel(lq)
         curves.append(p1)
 
 
@@ -133,6 +142,8 @@ shadowEnds = []
 shadowIdx = []
 if shadowMask == True:
     for i,p in enumerate(curves):
+        if polyNmask[i] == False:
+            continue
         #find downstream shadow edge
         sign_changes = np.where(np.diff(np.sign(p.bdotn)))[0]
         idx1 = sign_changes[0] + 1 if len(sign_changes) > 0 else None
@@ -151,12 +162,17 @@ if shadowMask == True:
         HFarray.append( p.maxHF )
 
 
-#save max HF line in csv file
-if saveCSV==True:
+#save max HF line in csv file with alpha data
+if saveCSVmaxHF==True:
     with open(maxHFcsv,'a') as fd:
         row = '{:0.3f},'.format(a) + ','.join([str(np.round(s, 6)) for s in HFarray]) + '\n'
         fd.write(row)
 
+#save max HF line in csv file with lq data
+if saveCSVmaxHFlq==True:
+    with open(maxHFcsv,'a') as fd:
+        row = '{:0.3f},'.format(lq) + ','.join([str(np.round(s, 6)) for s in HFarray]) + '\n'
+        fd.write(row)
 
 
 #================================================
@@ -171,6 +187,8 @@ fig4 = go.Figure()
 
 color = px.colors.qualitative.Plotly
 for i,p in enumerate(curves):
+    if polyNmask[i] == False:
+        continue
     #for visualizing curve
     if shadowMask == True:
         fig.add_trace(go.Scatter(x=p.yArr[p.hot,0], y=p.yArr[p.hot,1],
@@ -182,7 +200,7 @@ for i,p in enumerate(curves):
                                  mode = 'lines',
                                  name="poly{:d} shadow".format(i)))
     else:
-        fig.add_trace(go.Scatter(x=p.yArr[:,0], y=p.yArr[:,1], name="poly{:d}".format(i)))
+        fig.add_trace(go.Scatter(x=p.yArr[:,0], y=p.yArr[:,1], name="curve{:d}".format(i)))
 
     #for visualizing bdotn
     fig1.add_trace(go.Scatter(x=p.yArr[:,0], y=p.bdotn, name="bdotn{:d}".format(i)))
@@ -207,11 +225,15 @@ for i,p in enumerate(curves):
 
 fig.update_xaxes(title='[mm]')
 fig.update_yaxes(title='[mm]')
-fig.update_yaxes(scaleanchor = "x",scaleratio = 1,)
+fig1.update_xaxes(title='[mm]')
+fig1.update_yaxes(title='bdotn')
+fig3.update_xaxes(title='[mm]')
+fig3.update_yaxes(title='qDiv_normalized')
+#fig.update_yaxes(scaleanchor = "x",scaleratio = 1,)
 
 #top surface shape
 fig.show()
 #bdotn plot
 #fig1.show()
 #hf plot
-fig3.show()
+#fig3.show()

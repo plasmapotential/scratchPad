@@ -7,28 +7,28 @@ import numpy as np
 import plotly.graph_objects as go
 #=== User inputs =====
 #fish-scale heights T5B
-#tileName = 'T5B'
-#h_s = 528.6e-6 # [m], fish-scale height
-#h_c = 1176.2e-6 #[m]
-#h_p = 3390.4e-6 #[m]
-#R_sp = 1.76 #[m]
-#aoi = 4.31 #degrees
-#aoiDesign = 10.0 #degrees
+tileName = 'T5B'
+h_s = 324.5e-6 # [m], fish-scale height
+h_c = 718.0e-6 #[m]
+h_p = 1717.0e-6 #[m]
+R_sp = 1.76 #[m]
+aoi = 4.31 #degrees
+aoiDesign = 10.0 #degrees
 
 #T4
-tileName = 'T4'
-h_s = 263.5e-6 #- 100e-6
-h_c = 536e-6
-h_p = 1484.6e-6
+#tileName = 'T4'
+#h_s = 263.5e-6 #- 100e-6
+#h_c = 536e-6
+#h_p = 1484.6e-6
 #0 degree a_design
 #h_s = 186.5e-6 #- 100e-6
 #h_c = 378e-6
 #h_p = 1091.6e-6
 
 R_sp = 1.767 #[m]
-aoi = 1.0 #[degrees]
+#aoi = 1.0 #[degrees]
 #aoi = 3.0 #[degrees]
-aoiDesign = 3.0 #degrees
+aoiDesign = 2.0 #degrees
 #angle of incidence
 
 alpha = np.radians(aoi)
@@ -51,7 +51,7 @@ class tileClass:
         gaps provided below in [m]
         """
         if name=='T5B':
-            self.g_s = 600e-6 #[m]
+            self.g_s = 450e-6 + 25e-6 #[m] + chamfer
             self.g_c = 2000e-6 #[m]
             self.g_p = 5000e-6 #[m]
             self.sMode = 720
