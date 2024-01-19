@@ -51,7 +51,7 @@ bDir = 1.0
 limType = 'outerLim'
 #limType = 'innerLim'
 #lq in mm
-lq = 0.6
+lq = 1.2
 #get between wall and lcfs
 gapLCFS = 0.0
 
@@ -232,8 +232,8 @@ fig3.update_yaxes(title='qDiv_normalized')
 #fig.update_yaxes(scaleanchor = "x",scaleratio = 1,)
 
 #top surface shape
-fig.show()
+#fig.show()
 #bdotn plot
 #fig1.show()
 #hf plot
-#fig3.show()
+fig3.show()

@@ -50,6 +50,7 @@ class bezier:
         ctrs and norms are of dimension len(x)-1
 
         fullTile is a boolean that indicates if we are doing a half or full tile
+        if your control points correspond to half a tile then set to True
         """
         if fullTile==True:
             m = 2.0

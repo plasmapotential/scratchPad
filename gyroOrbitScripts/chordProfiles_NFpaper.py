@@ -5,7 +5,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import sys
 import os
-HEATPath = '/home/tom/source/HEAT/github/source'
+HEATPath = '/home/tlooby/source/HEAT/github/source'
 sys.path.append(HEATPath)
 import toolsClass
 tools = toolsClass.tools()
@@ -13,9 +13,11 @@ tools.rootDir = HEATPath
 
 #================== USER INPUTS ======================================
 #Choose between 'poloidal' or 'toroidal' chord
-mode = 'toroidal'
+mode = 'poloidal'
 
 #point on center of PFC
+#sparc
+#pt = np.array([1617.56,287.574,-1400.56])
 #for gunn / komm plots using Cube
 pt = np.array([384.421, 396.983, -1603.5])
 #for NSTXU castellation
@@ -37,6 +39,8 @@ if mode == 'toroidal':
 
 #poloidal
 else:
+    #sparc T4
+    #pt0 = np.array([1545.74,281.559,-1298.66])
     #gunn / komm plots gyroConvergence2
     pt0 = np.array([385.815,399.036,-1603.52])
     #for nstxu castellation
@@ -45,7 +49,7 @@ else:
     #tileX1 = 28.0
 
 #max distance from the slice that we include points from on either side
-threshDist = 0.25 #mm
+threshDist = 1.0 #mm
 
 #use this to flip plot around (right=>left starting point)
 flip = True
@@ -65,7 +69,7 @@ addBox = False
 addArrow = False
 
 #use this to write an EPS file
-writeEPS = True
+writeEPS = False
 epsFile = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/images/sTor10v100.svg'
 
 #location of HF csv files (here we have three)
@@ -99,6 +103,8 @@ epsFile = '/home/tom/results/NSTXU/NF_gyro_paper/castellation/images/sTor10v100.
 file1 = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_v3/nstx_204118_GunnReplicate1_555/001004/Cube/HF_optical.csv'
 file2 = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_10eV_v_100eV/nstx_204118_GunnReplicate1_555_10eV_200um/001004/Cube/HF_gyro.csv'
 file3 = '/home/tom/results/NSTXU/NF_gyro_paper/testCase_10eV_v_100eV/nstx_204118_GunnReplicate1_555_100eV_200um/001004/Cube/HF_gyro.csv'
+#sparc T4
+#file = '/home/tlooby/HEAT/data/sparc_000001_neutrinoCheck_axisymmetricT4_neutrinoGfile/000001/paraview/HF_optical_all.csv'
 
 #===============================================================================
 

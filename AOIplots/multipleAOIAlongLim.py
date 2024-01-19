@@ -179,36 +179,36 @@ maxS= 2.6
 #maxS = 2.076
 
 #for T6:
-minS = 2.416
-maxS = 2.584
+#minS = 2.416
+#maxS = 2.584
 
 #tile index for plotting single tile green overlay
 Tidx = 4
 
 #masks
 #field mode (total vs poloidal)
-fieldMode = 'pol'
+fieldMode = 'total'
 #only plot section of RZ contour of wall
-sectionMask = True
+sectionMask = False
 #interpolate the wall points to get higher resolution AOI
 interpolateMask = True
 #plot the wall contour in an R,Z plot
-plotMaskContour = False
+plotMaskContour = True
 #overlay strike points and lq widths
-plotSP = True
+plotSP = False
 #plot AOI over section of RZ wall contour with no PFC tile overlays
-plotMaskAOI = False
+plotMaskAOI = True
 #only plot a single tile (requires changing S min/max)
 plotMaskSingleT = False
 #plot AOI over section with PFC overlays
 plotMaskAllT = False
 #plot mins and maxes for all tiles for all timesteps
-minMaxMask = True
+minMaxMask = False
 #plot mins and maxes at the strike points for all timesteps
 AOIatSP = False
 
 #output CSV file
-minMaxCSV = '/home/tlooby/projects/EQ_devon/output/minMax.csv'
+minMaxCSV = '/home/tlooby/projects/ILIM_EQ/output/minMax.csv'
 
 # Calculate distance along curve/wall (also called S):
 def distance(rawdata):
@@ -239,7 +239,7 @@ def centers(rz):
 #geqdsk files
 #gPath = '/home/tom/work/CFS/GEQDSKs/sweep7_v2y/'
 #gPath = '/home/tom/HEATruns/SPARC/sweep7_T5/originalGEQDSKs/'
-gPath = '/home/tlooby/projects/EQ_devon/tmp/'
+gPath = '/home/tlooby/projects/ILIM_EQ/corrected/'
 gNames = [f.name for f in os.scandir(gPath)]
 gNames.sort()
 
@@ -249,7 +249,7 @@ AOIarray = []
 AOI_SParray = []
 for gIdx,g in enumerate(gNames):
     #copy file to tmp location with new name so that EP class can read it
-    gRenamed = '/home/tlooby/projects/EQ_devon/output/g000001.00001'
+    gRenamed = '/home/tlooby/projects/ILIM_EQ/output/g000001.00001'
     shutil.copyfile(gPath+g, gRenamed)
     #load gfile
     ep = EP.equilParams(gRenamed)
