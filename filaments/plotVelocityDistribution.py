@@ -18,6 +18,7 @@ mass_eV = ionMassAMU * AMU
 Z=1 #assuming isotopes of hydrogen here
 
 vThermal = np.sqrt(2.0*T_eV/(mass_eV/c**2))
+print("Thermal Velocity: {:f} [m/s]".format(vThermal))
 #vThermal = np.sqrt(T_eV/(mass_eV/c**2))
 LPar = 4.649 #m
 

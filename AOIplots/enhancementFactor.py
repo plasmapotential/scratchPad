@@ -7,13 +7,11 @@ import numpy as np
 import plotly.graph_objects as go
 #=== User inputs =====
 #fish-scale heights T5B
-tileName = 'T5B'
-h_s = 324.5e-6 # [m], fish-scale height
-h_c = 718.0e-6 #[m]
-h_p = 1717.0e-6 #[m]
-R_sp = 1.76 #[m]
-aoi = 4.31 #degrees
-aoiDesign = 10.0 #degrees
+#tileName = 'T5B'
+#h_s = 324.5e-6 # [m], fish-scale height
+#h_c = 718.0e-6 #[m]
+#h_p = 1717.0e-6 #[m]
+
 
 #T4
 #tileName = 'T4'
@@ -25,8 +23,15 @@ aoiDesign = 10.0 #degrees
 #h_c = 378e-6
 #h_p = 1091.6e-6
 
-R_sp = 1.767 #[m]
-#aoi = 1.0 #[degrees]
+#T2
+tileName = 'T2'
+h_s = 205.0e-6 #- 100e-6
+h_c = 355.0e-6
+h_p = 887.0e-6
+
+
+R_sp = 1.385 #[m]
+aoi = 1.4 #[degrees]
 #aoi = 3.0 #[degrees]
 aoiDesign = 2.0 #degrees
 #angle of incidence
@@ -66,7 +71,15 @@ class tileClass:
             self.cMode = 144
             self.pMode = 36
             self.Rctr = R_sp
-        
+        elif name=='T2':
+            self.g_s = 500e-6 #[m]
+            self.g_c = 1500e-6 #[m]
+            self.g_p = 4500e-6 #[m]
+            self.sMode = 720
+            self.cMode = 144
+            self.pMode = 36
+            self.Rctr = R_sp
+                
         
         
         self.g_tot = self.g_s*self.sMode + self.g_c*self.cMode + self.g_p*self.pMode

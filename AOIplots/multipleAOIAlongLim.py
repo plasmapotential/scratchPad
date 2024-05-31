@@ -150,9 +150,13 @@ numS=1000
 #maxS=1.89
 #end of divertor:
 
+#for ILIM - IOLIM
+#minS = 0.0
+#maxS = 1.1
+
 #for entire lower divertor
-minS=1.1
-maxS= 2.6
+#minS=1.1
+#maxS= 2.6
 
 #for inner divertor
 #minS=1.1
@@ -163,8 +167,8 @@ maxS= 2.6
 #maxS = 1.304
 
 #for T2:
-#minS = 1.335
-#maxS = 1.451
+minS = 1.335
+maxS = 1.451
 
 #for T3:
 #minS = 1.455
@@ -186,16 +190,16 @@ maxS= 2.6
 Tidx = 4
 
 #masks
-#field mode (total vs poloidal)
-fieldMode = 'total'
+#field mode (total vs poloidal ('pol'))
+fieldMode = 'tor'
 #only plot section of RZ contour of wall
-sectionMask = False
+sectionMask = True
 #interpolate the wall points to get higher resolution AOI
 interpolateMask = True
 #plot the wall contour in an R,Z plot
-plotMaskContour = True
+plotMaskContour = False
 #overlay strike points and lq widths
-plotSP = False
+plotSP = True
 #plot AOI over section of RZ wall contour with no PFC tile overlays
 plotMaskAOI = True
 #only plot a single tile (requires changing S min/max)
@@ -207,8 +211,16 @@ minMaxMask = False
 #plot mins and maxes at the strike points for all timesteps
 AOIatSP = False
 
+
 #output CSV file
-minMaxCSV = '/home/tlooby/projects/ILIM_EQ/output/minMax.csv'
+minMaxCSV = '/home/tlooby/HEATruns/SPARC/fishScale_T2/EQ/output/minMax.csv'
+
+#geqdsk files
+#gPath = '/home/tom/work/CFS/GEQDSKs/sweep7_v2y/'
+#gPath = '/home/tom/HEATruns/SPARC/sweep7_T5/originalGEQDSKs/'
+#gPath = '/home/tlooby/projects/MEQ_EQ/tmp/'
+gPath = '/home/tlooby/HEATruns/SPARC/fishScale_T2/EQ/corrected/'
+#gPath = '/home/tlooby/HEATruns/SPARC/IOLIM_shaping/EQ/VDE_downIn_v2/'
 
 # Calculate distance along curve/wall (also called S):
 def distance(rawdata):
@@ -236,12 +248,10 @@ def centers(rz):
     centers[:,1] = rz[:-1,1] + dZ/2.0
     return centers
 
-#geqdsk files
-#gPath = '/home/tom/work/CFS/GEQDSKs/sweep7_v2y/'
-#gPath = '/home/tom/HEATruns/SPARC/sweep7_T5/originalGEQDSKs/'
-gPath = '/home/tlooby/projects/ILIM_EQ/corrected/'
+
 gNames = [f.name for f in os.scandir(gPath)]
 gNames.sort()
+print(gNames)
 
 fig = go.Figure()
 #matrix for postProcessing
@@ -249,13 +259,12 @@ AOIarray = []
 AOI_SParray = []
 for gIdx,g in enumerate(gNames):
     #copy file to tmp location with new name so that EP class can read it
-    gRenamed = '/home/tlooby/projects/ILIM_EQ/output/g000001.00001'
+    gRenamed = '/home/tlooby/projects/MEQ_EQ/output/g000001.00001'
     shutil.copyfile(gPath+g, gRenamed)
     #load gfile
     ep = EP.equilParams(gRenamed)
     data, idx = np.unique(ep.g['wall'], axis=0, return_index=True)
     rawdata = data[np.argsort(idx)]
-
 
     #close the contour (if necessary)
     if np.all(rawdata[-1] != rawdata[0]):
@@ -354,147 +363,152 @@ for gIdx,g in enumerate(gNames):
     bdotn = np.multiply(Brz, newNorms2D).sum(1)
     AOI = np.degrees(np.arcsin(bdotn))
 
-    #calculate lambda_q at SPs
-    lq = 0.0003 #in meters at OMP
-    psiaxis = ep.g['psiAxis']
-    psiedge = ep.g['psiSep']
-    deltaPsi = np.abs(psiedge - psiaxis)
-    s_hat = psiN - 1.0
-    #map R coordinates up to the midplane via flux mapping
-    R_omp = np.linspace(ep.g['RmAxis'], ep.g['R1'] + ep.g['Xdim'], 100)
-    Z_omp = np.zeros(len(R_omp))
-    psi_omp = ep.psiFunc.ev(R_omp,Z_omp)
 
-    try:
-        f = scinter.UnivariateSpline(psi_omp, R_omp, s = 0, ext = 'const')
-    except:
-        print("ERROR!  psi_omp wasnt monotonic.  trying to truncate...")
-        f = scinter.UnivariateSpline(psi_omp[5:], R_omp[5:], s = 0, ext = 'const')
+    if np.logical_or(plotSP, AOIatSP):
+        #calculate lambda_q at SPs
+        lq = 0.0003 #in meters at OMP
+        psiaxis = ep.g['psiAxis']
+        psiedge = ep.g['psiSep']
+        deltaPsi = np.abs(psiedge - psiaxis)
+        s_hat = psiN - 1.0
+        #map R coordinates up to the midplane via flux mapping
+        R_omp = np.linspace(ep.g['RmAxis'], ep.g['R1'] + ep.g['Xdim'], 100)
+        Z_omp = np.zeros(len(R_omp))
+        psi_omp = ep.psiFunc.ev(R_omp,Z_omp)
+        try:
+            f = scinter.UnivariateSpline(psi_omp, R_omp, s = 0, ext = 'const')
+        except:
+            print("ERROR!  psi_omp wasnt monotonic.  trying to truncate...")
+            f = scinter.UnivariateSpline(psi_omp[5:], R_omp[5:], s = 0, ext = 'const')
+        R_mapped = f(psiN)
+        Z_mapped = np.zeros(len(R_mapped))
+        Bp_mapped = ep.BpFunc.ev(R_mapped,Z_mapped)
+        # Gradient and coordinate transformation between xyz and flux
+        gradPsi = Bp_mapped*R_mapped
+        xfm = gradPsi / deltaPsi
+        # Decay width at target mapped to flux coordinates
+        lq_hat = lq * xfm
 
-    R_mapped = f(psiN)
-    Z_mapped = np.zeros(len(R_mapped))
-    Bp_mapped = ep.BpFunc.ev(R_mapped,Z_mapped)
-    # Gradient and coordinate transformation between xyz and flux
-    gradPsi = Bp_mapped*R_mapped
-    xfm = gradPsi / deltaPsi
-    # Decay width at target mapped to flux coordinates
-    lq_hat = lq * xfm
+        #calculate heat flux width and flux expansion
+        #option 1: calculates flux expansion (fx) via flux mapping
+        p0 = psiN[0]
+        S0 = newDistCtrs[0]
+        lq0 = lq_hat[0]
+        SPs = []
+        SPidxs = []
+        lqs = []
+        Nlqs = 1.0
+        Slqs = []
+        R_SP = []
+        Z_SP = []
+        for i,p in enumerate(psiN):
+            if p0 < 1.0:
+                if p > 1.0:
+                    frac = (1.0 - p0) / (p - p0)
+                    #S of strike point
+                    S = (newDistCtrs[i] - S0)*frac + S0
+                    SPs.append(S)
+                    SPidxs.append(i)
+                    #R,Z if strike point
+                    R_SP.append((R[i]-R[i-1])*frac + R[i-1])
+                    Z_SP.append((Z[i]-Z[i-1])*frac + Z[i-1])
+                    #local lambda_q at SP
+                    lqSP = (lq_hat[i] - lq0)*frac + lq0
+                    lqs.append(lqSP)
+                    #calculate distance in S of Nlq*lambda_q from SP
+                    Slq = (newDistCtrs[i] - S0) / (p - p0) * lqSP * Nlqs
+                    Slqs.append(Slq)
 
-    #calculate heat flux width and flux expansion
-    #option 1: calculates flux expansion (fx) via flux mapping
-    p0 = psiN[0]
-    S0 = newDistCtrs[0]
-    lq0 = lq_hat[0]
-    SPs = []
-    SPidxs = []
-    lqs = []
-    Nlqs = 1.0
-    Slqs = []
-    R_SP = []
-    Z_SP = []
-    for i,p in enumerate(psiN):
-        if p0 < 1.0:
-            if p > 1.0:
-                frac = (1.0 - p0) / (p - p0)
-                #S of strike point
-                S = (newDistCtrs[i] - S0)*frac + S0
-                SPs.append(S)
-                SPidxs.append(i)
-                #R,Z if strike point
-                R_SP.append((R[i]-R[i-1])*frac + R[i-1])
-                Z_SP.append((Z[i]-Z[i-1])*frac + Z[i-1])
-                #local lambda_q at SP
-                lqSP = (lq_hat[i] - lq0)*frac + lq0
-                lqs.append(lqSP)
-                #calculate distance in S of Nlq*lambda_q from SP
-                Slq = (newDistCtrs[i] - S0) / (p - p0) * lqSP * Nlqs
-                Slqs.append(Slq)
+            elif p0 > 1.0:
+                if p < 1.0:
+                    frac = (p0 - 1.0) / (p0 - p)
+                    #S of strike point
+                    S = (newDistCtrs[i] - S0)*frac + S0
+                    SPs.append(S)
+                    SPidxs.append(i)
+                    #R,Z if strike point
+                    R_SP.append((R[i]-R[i-1])*frac + R[i-1])
+                    Z_SP.append((Z[i]-Z[i-1])*frac + Z[i-1])
+                    #local lambda_q at SP
+                    lqSP = lq0 - (lq0 - lq_hat[i])*frac
+                    lqs.append(lqSP)
+                    #calculate distance in S of Nlq*lambda_q from SP
+                    Slq = (newDistCtrs[i] - S0) / (p0 - p) * lqSP * Nlqs
+                    Slqs.append(Slq)
 
-        elif p0 > 1.0:
-            if p < 1.0:
-                frac = (p0 - 1.0) / (p0 - p)
-                #S of strike point
-                S = (newDistCtrs[i] - S0)*frac + S0
-                SPs.append(S)
-                SPidxs.append(i)
-                #R,Z if strike point
-                R_SP.append((R[i]-R[i-1])*frac + R[i-1])
-                Z_SP.append((Z[i]-Z[i-1])*frac + Z[i-1])
-                #local lambda_q at SP
-                lqSP = lq0 - (lq0 - lq_hat[i])*frac
-                lqs.append(lqSP)
-                #calculate distance in S of Nlq*lambda_q from SP
-                Slq = (newDistCtrs[i] - S0) / (p0 - p) * lqSP * Nlqs
-                Slqs.append(Slq)
+            else:
+                print("Right on SP?...seems unlikely...")
 
-        else:
-            print("Right on SP?...seems unlikely...")
+            p0 = p
+            S0 = newDistCtrs[i]
+            lq0 = lq_hat[i]
 
-        p0 = p
-        S0 = newDistCtrs[i]
-        lq0 = lq_hat[i]
-
-    #option 2, calculate fx analytically using fx function (replaces Slqs with lqAway)
-    Bpr = ep.BRFunc.ev(R[SPidxs],Z[SPidxs])
-    Bpz = ep.BZFunc.ev(R[SPidxs],Z[SPidxs])
-    # Get R and Z vectors at the midplane
-    R_omp_sol = ep.g['lcfs'][:,0].max()
-    # Evaluate B at outboard midplane
-    Bp_omp = ep.BpFunc.ev(R_omp_sol,0.0)
-    theta = np.zeros((Brz[SPidxs].shape))
-    theta[:,0] = Bpr / Bp[SPidxs]
-    theta[:,1] = Bpz / Bp[SPidxs]
-    thetadotn =  np.multiply(theta, newNorms2D[SPidxs]).sum(1)
-    #flux expansion at each target location
-    fx = (Bp_omp * R_omp_sol) / (Bp[SPidxs] * R[SPidxs]) * (1.0 / np.abs(thetadotn))
-    lqAway = Nlqs*fx*lq
-
-
-    #print S at each target start/end point
-    ptIdxs = []
-#    print("R          Z          S")
-    for i,pt in enumerate(points):
-        test0 = np.array(pt[0]==interpolated_points[:,0])
-        test1 = np.array(pt[1]==interpolated_points[:,1])
-        test = np.logical_and(test0,test1)
-        #test = pt in interpolated_points
-        iloc = np.where(test==True)[0][0]
-        ptIdxs.append(iloc)
-        line = "{:0.8f} {:0.8f} {:0.8f}".format(interpolated_points[iloc,0], interpolated_points[iloc,1], newdist[iloc])
-#        print(line)
-
-    ptIdxs = np.array(ptIdxs)
-
-    #print all R,Z,S within section
-    #print("R          Z          S")
-    #for i,S in enumerate(dist[idxDist]):
-    #    line = "{:0.8f} {:0.8f} {:0.8f}".format(rawdata[i,0], rawdata[i,1], S)
-    #    print(line)
-
-    #Now print max AOI along each of the sections defined above
-    starts = points[0::2]
-    ends = points[1::2]
-    startIdxs = ptIdxs[0::2]
-    endIdxs = ptIdxs[1::2]
-
-    minAOI = []
-    maxAOI = []
-    avgAOI = []
-    NPFCs = int(len(points) / 2.0)
-
-    for i in range(NPFCs):
-        AOIidx = AOI[startIdxs[i]:endIdxs[i]]
-        minAOI.append(np.min(np.abs(AOIidx)))
-        maxAOI.append(np.max(np.abs(AOIidx)))
-        avgAOI.append(np.average(np.abs(AOIidx)))
-
-    minAOI = np.array(minAOI)
-    maxAOI = np.array(maxAOI)
-    avgAOI = np.array(avgAOI)
-
-    outputMat = np.vstack([minAOI,maxAOI,avgAOI]).T
-#    print(outputMat)
-    AOIarray.append(outputMat)
+        #option 2, calculate fx analytically using fx function (replaces Slqs with lqAway)
+        Bpr = ep.BRFunc.ev(R[SPidxs],Z[SPidxs])
+        Bpz = ep.BZFunc.ev(R[SPidxs],Z[SPidxs])
+        # Get R and Z vectors at the midplane
+        R_omp_sol = ep.g['lcfs'][:,0].max()
+        # Evaluate B at outboard midplane
+        Bp_omp = ep.BpFunc.ev(R_omp_sol,0.0)
+        theta = np.zeros((Brz[SPidxs].shape))
+        theta[:,0] = Bpr / Bp[SPidxs]
+        theta[:,1] = Bpz / Bp[SPidxs]
+        thetadotn =  np.multiply(theta, newNorms2D[SPidxs]).sum(1)
+        #flux expansion at each target location
+        fx = (Bp_omp * R_omp_sol) / (Bp[SPidxs] * R[SPidxs]) * (1.0 / np.abs(thetadotn))
+        lqAway = Nlqs*fx*lq
+    
+    
+        #print S at each target start/end point
+        ptIdxs = []
+    
+    #    print("R          Z          S")
+        for i,pt in enumerate(points):
+            test0 = np.array(pt[0]==interpolated_points[:,0])
+            test1 = np.array(pt[1]==interpolated_points[:,1])
+            test = np.logical_and(test0,test1)
+            #test = pt in interpolated_points
+            try:
+                iloc = np.where(test==True)[0][0]
+                ptIdxs.append(iloc)
+                line = "{:0.8f} {:0.8f} {:0.8f}".format(interpolated_points[iloc,0], interpolated_points[iloc,1], newdist[iloc])
+    #           print(line)
+            except:
+                print("No S for this value")
+    
+        ptIdxs = np.array(ptIdxs)
+    
+        #print all R,Z,S within section
+        #print("R          Z          S")
+        #for i,S in enumerate(dist[idxDist]):
+        #    line = "{:0.8f} {:0.8f} {:0.8f}".format(rawdata[i,0], rawdata[i,1], S)
+        #    print(line)
+    
+        #Now print max AOI along each of the sections defined above
+        if minMaxMask==True:
+            starts = points[0::2]
+            ends = points[1::2]
+            startIdxs = ptIdxs[0::2]
+            endIdxs = ptIdxs[1::2]
+    
+            minAOI = []
+            maxAOI = []
+            avgAOI = []
+            NPFCs = int(len(points) / 2.0)
+    
+            for i in range(NPFCs):
+                AOIidx = AOI[startIdxs[i]:endIdxs[i]]
+                minAOI.append(np.min(np.abs(AOIidx)))
+                maxAOI.append(np.max(np.abs(AOIidx)))
+                avgAOI.append(np.average(np.abs(AOIidx)))
+    
+            minAOI = np.array(minAOI)
+            maxAOI = np.array(maxAOI)
+            avgAOI = np.array(avgAOI)
+    
+            outputMat = np.vstack([minAOI,maxAOI,avgAOI]).T
+        #    print(outputMat)
+            AOIarray.append(outputMat)
 
 
     #plot the PFC RZ contour with Region of Interest overlaid

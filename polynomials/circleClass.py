@@ -1,52 +1,26 @@
+
 import numpy as np
-from scipy.special import comb
 
-
-class bezier:
+class circle:
     """
-    bezier curve object and associated functions
+    polynomial object and associated functions
     """
-    def __init__(self, points):
-        self.pts = points
+    def __init__(self, radius):
+        self.R = radius
         return
 
-    def bernstein_poly(self, i, n, t):
+    def circle_curve(self, R, w, N):
         """
-         The Bernstein polynomial of n, i as a function of t
+        makes a semi-circle.  w should be half width of tile.  R is radius
         """
-        return comb(n, i) * ( t**(n-i) ) * (1 - t)**i
+        x = np.linspace(0,w,N)
+        y = np.sqrt(R**2 - x**2) - R #subtracting r shifts apex to 0
 
-    def bezier_curve(self, points, nTimes=100):
+        return x, y
+
+    def evalOnX(self, Nx, w, fullTile=True, rotation=0.0):
         """
-           Given a set of control points, return the
-           bezier curve defined by the control points.
-
-           points should be a list of lists, or list of tuples
-           such as [ [1,1], 
-                     [2,3], 
-                     [4,5], ..[Xn, Yn] ]
-            nTimes is the number of time steps, defaults to 1000
-
-            See http://processingjs.nihongoresources.com/bezierinfo/
-        """
-
-        nPoints = len(points)
-        xPoints = np.array([p[0] for p in points])
-        yPoints = np.array([p[1] for p in points])
-
-        t = np.linspace(0.0, 1.0, nTimes)
-
-        polynomial_array = np.array([ self.bernstein_poly(i, nPoints-1, t) for i in range(0, nPoints)   ])
-
-        xvals = np.dot(xPoints, polynomial_array)
-        yvals = np.dot(yPoints, polynomial_array)
-
-        return xvals, yvals
-  
-
-    def evalOnX(self, Nx, fullTile=True, rotation=0.0):
-        """
-        evaluates bezier, derivative, ctrs, normals, for user defined x values
+        evaluates circle, derivative, ctrs, normals, for user defined x values
         ctrs and norms are of dimension len(x)-1
 
         fullTile is a boolean that indicates if we are doing a half or full tile
@@ -56,10 +30,7 @@ class bezier:
             m = 2.0
         else:
             m=1.0
-        x1, y1 = self.bezier_curve(self.pts, int(Nx/m))
-
-        x = np.flip(x1)
-        y = np.flip(y1)
+        x, y = self.circle_curve(self.R, w, int(Nx/m))
 
         if fullTile == True:
             x = np.unique(np.concatenate([-1.0*np.flip(x), x]))
@@ -77,8 +48,7 @@ class bezier:
         self.norms = np.zeros((self.ctrs.shape))
         normTmp = self.normals(self.yArr)
         self.norms[:,0] = normTmp[:,0]
-        self.norms[:,1] = normTmp[:,1]        
-
+        self.norms[:,1] = normTmp[:,1]   
 
         #rotate norms if necessary
         # Rotation matrix
@@ -88,6 +58,7 @@ class bezier:
                 [np.sin(rotation), np.cos(rotation)]
             ])
             self.norms = self.norms @ rotation_matrix.T  # Matrix multiplication
+
         return
     
 
@@ -136,9 +107,9 @@ class bezier:
         """
         rVec = np.zeros((len(self.ctrs), 3))
         if mode == 'innerLim':
-            rVec[:,1] = (self.pts[0,1] - self.ctrs[:,1]) + R0
+            rVec[:,1] = R0 - self.ctrs[:,1]
         else:
-            rVec[:,1] = R0 - (self.pts[0,1] - self.ctrs[:,1])
+            rVec[:,1] = R0 + self.ctrs[:,1]
         rVec[:,0] = self.ctrs[:,0]
         rMag = np.linalg.norm(rVec, axis=1)
         rVec[:,0] = rVec[:,0] / rMag
@@ -157,32 +128,13 @@ class bezier:
         self.phi = self.phi / phiMag[:,np.newaxis]
         return
 
-    def localPhi0(self, R0):
-        """
-        calculate the local phi vector at each ctr point
-        given a radius of R0 at the polynomial apex
-        """
-        rVec = np.zeros((len(self.ctrs), 3))
-        rVec[:,0] = self.pts[0,1] - self.ctrs[:,1] + R0
-        rVec[:,1] = self.ctrs[:,0]
-        rMag = np.linalg.norm(rVec, axis=1)
-        rVec[:,0] = rVec[:,0] / rMag
-        rVec[:,1] = rVec[:,1] / rMag
 
-        zVec = np.array([0.0, 0.0, 1.0])
-        phi = np.cross(rVec, zVec)
-
-        self.phi = np.zeros((self.ctrs.shape))
-        self.phi[:,0] = phi[:,1]
-        self.phi[:,1] = -phi[:,0]
-        return
-    
     def qParallel(self, lq, gap=0.0):
         """
         calculates q|| given lq, the decay length for an exponential profile
         assumes separatrix is on tile apex unless a gap is specified in mm
         """
-        r = self.pts[0,1] - self.ctrs[:,1] + gap
+        r = self.ctrs[:,1] + gap
         q = np.exp(-r / lq)
 
         return q
