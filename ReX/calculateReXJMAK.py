@@ -210,7 +210,7 @@ fig.update_layout(
 #title="Temperature Probe Time Evolution",
     font=dict(
         family="Arial",
-        size=20,
+        size=30,
         color="Black"
     ),
     margin=dict(
