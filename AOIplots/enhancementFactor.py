@@ -24,14 +24,22 @@ import plotly.graph_objects as go
 #h_p = 1091.6e-6
 
 #T2
-tileName = 'T2'
-h_s = 205.0e-6 #- 100e-6
-h_c = 355.0e-6
+#tileName = 'T2'
+#h_s = 205.0e-6 #- 100e-6
+#h_c = 355.0e-6
+#h_p = 887.0e-6
+
+
+#T1
+tileName = 'T1'
+h_s = 209.0e-6 #- 100e-6
+h_c = 364.0e-6
 h_p = 887.0e-6
 
 
-R_sp = 1.385 #[m]
-aoi = 1.4 #[degrees]
+
+R_sp = 1.340 #[m]
+aoi = 1.26 #[degrees]
 #aoi = 3.0 #[degrees]
 aoiDesign = 2.0 #degrees
 #angle of incidence
@@ -79,7 +87,14 @@ class tileClass:
             self.cMode = 144
             self.pMode = 36
             self.Rctr = R_sp
-                
+        elif name=='T1':
+            self.g_s = 500e-6 #[m]
+            self.g_c = 1750e-6 #[m]
+            self.g_p = 4500e-6 #[m]
+            self.sMode = 720
+            self.cMode = 144
+            self.pMode = 36
+            self.Rctr = R_sp                
         
         
         self.g_tot = self.g_s*self.sMode + self.g_c*self.cMode + self.g_p*self.pMode

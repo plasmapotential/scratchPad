@@ -9,7 +9,8 @@ import plotly.graph_objects as go
 #f = '/home/tlooby/HEAT/data/sparc_000001_sweepMEQ_T4_20231206_nominal_lq0.6_S0.6_fRadDiv70/Tile032_TMax.csv'
 #f = '/home/tlooby/HEAT/data/sparc_000001_sweepMEQ_T4_20231206_nominal_lq0.6_S0.6_fRadDiv20/Tile032_TMax.csv'
 #f = '/home/tlooby/HEAT/data/sparc_000001_sweepMEQ_T4_20231206_nominal_fRadDiv70_lq0.6_S0.6/TmaxData_PV.csv'
-f = '/home/tlooby/HEAT/data/sparc_000001_sweepMEQ_T4_20231206_nominal_fRadDiv70_lq0.6_S0.6/Tpeak_v2.csv'
+#f = '/home/tlooby/HEAT/data/sparc_000001_sweepMEQ_T4_20231206_nominal_fRadDiv70_lq0.6_S0.6/Tpeak_v2.csv'
+f = '/home/tlooby/HEAT/data/sparc_000001_sweepMEQ_T4_20231206_nominal_fRadDiv70_lq0.6_S0.6/T_cell45479.csv'
 data = np.genfromtxt(f, delimiter=',', skip_header=True)
 
 
