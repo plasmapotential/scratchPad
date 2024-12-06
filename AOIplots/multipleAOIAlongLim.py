@@ -154,6 +154,10 @@ numS=1000
 #minS = 0.0
 #maxS = 1.1
 
+#for ILIM - T1
+#minS = 0.0
+#maxS = 1.304
+
 #for entire lower divertor
 #minS=1.1
 #maxS= 2.6
@@ -167,8 +171,8 @@ numS=1000
 #maxS = 1.304
 
 #for T2:
-minS = 1.335
-maxS = 1.451
+#minS = 1.335
+#maxS = 1.451
 
 #for T3:
 #minS = 1.455
@@ -178,20 +182,24 @@ maxS = 1.451
 #minS = 1.632
 #maxS = 1.893
 
+#for T2-T4
+#minS = 1.335
+#maxS = 1.893
+
 #for T5B:
 #minS = 1.955
 #maxS = 2.076
 
 #for T6:
-#minS = 2.416
-#maxS = 2.584
+minS = 2.416
+maxS = 2.584
 
 #tile index for plotting single tile green overlay
 Tidx = 4
 
 #masks
 #field mode (total vs poloidal ('pol'))
-fieldMode = 'tor'
+fieldMode = 'total'
 #only plot section of RZ contour of wall
 sectionMask = True
 #interpolate the wall points to get higher resolution AOI
@@ -199,18 +207,17 @@ interpolateMask = True
 #plot the wall contour in an R,Z plot
 plotMaskContour = False
 #overlay strike points and lq widths
-plotSP = True
+plotSP = False
 #plot AOI over section of RZ wall contour with no PFC tile overlays
-plotMaskAOI = True
+plotMaskAOI = False
 #only plot a single tile (requires changing S min/max)
 plotMaskSingleT = False
 #plot AOI over section with PFC overlays
-plotMaskAllT = False
+plotMaskAllT = True
 #plot mins and maxes for all tiles for all timesteps
 minMaxMask = False
 #plot mins and maxes at the strike points for all timesteps
 AOIatSP = False
-
 
 #output CSV file
 minMaxCSV = '/home/tlooby/HEATruns/SPARC/fishScale_T2/EQ/output/minMax.csv'
@@ -218,8 +225,8 @@ minMaxCSV = '/home/tlooby/HEATruns/SPARC/fishScale_T2/EQ/output/minMax.csv'
 #geqdsk files
 #gPath = '/home/tom/work/CFS/GEQDSKs/sweep7_v2y/'
 #gPath = '/home/tom/HEATruns/SPARC/sweep7_T5/originalGEQDSKs/'
-#gPath = '/home/tlooby/projects/MEQ_EQ/tmp/'
-gPath = '/home/tlooby/HEATruns/SPARC/fishScale_T2/EQ/corrected/'
+gPath = '/home/tlooby/projects/MEQ_EQ/corrected/'
+#gPath = '/home/tlooby/HEATruns/SPARC/fishScale_T2/EQ/corrected/'
 #gPath = '/home/tlooby/HEATruns/SPARC/IOLIM_shaping/EQ/VDE_downIn_v2/'
 
 # Calculate distance along curve/wall (also called S):
@@ -257,6 +264,8 @@ fig = go.Figure()
 #matrix for postProcessing
 AOIarray = []
 AOI_SParray = []
+
+N_gIdxs = len(gNames)
 for gIdx,g in enumerate(gNames):
     #copy file to tmp location with new name so that EP class can read it
     gRenamed = '/home/tlooby/projects/MEQ_EQ/output/g000001.00001'
@@ -600,7 +609,8 @@ for gIdx,g in enumerate(gNames):
             ))
 
 
-        fig.show()
+        if gIdx == len(gNames)-1:
+            fig.show()
 
     #plot for a single tile (Tidx above).  Set Smin Smax for tile first
     if plotMaskSingleT == True:
@@ -624,7 +634,8 @@ for gIdx,g in enumerate(gNames):
             fig.update_yaxes(title="Angle of Incidence [degrees]")
         fig.update_xaxes(range=[minS-0.03, maxS+0.03])
         fig.update_yaxes(range=[-8, 8])
-        fig.show()
+        if gIdx == len(gNames)-1:
+            fig.show()
 
     #plot for all tiles.  set Smin and Smax to entire divertor first
     if plotMaskAllT == True:
@@ -661,8 +672,9 @@ for gIdx,g in enumerate(gNames):
         else:
             fig.update_yaxes(title="Angle of Incidence [degrees]")
         fig.update_xaxes(range=[minS-0.03, maxS+0.03])
-        fig.update_yaxes(range=[-8, 8])
-        fig.show()
+        #fig.update_yaxes(range=[-8, 8])
+        if gIdx == len(gNames)-1:
+            fig.show()
 
     #print("Nlqs*lq via flux mapping:")
     #print(Slqs)

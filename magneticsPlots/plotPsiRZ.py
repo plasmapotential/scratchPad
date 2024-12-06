@@ -1,7 +1,7 @@
 import sys
 import numpy as np
-EFITPath = '/home/tom/source'
-HEATPath = '/home/tom/source/HEAT/github/source'
+EFITPath = '/home/tlooby/source'
+HEATPath = '/home/tlooby/source/HEAT/github/source'
 sys.path.append(EFITPath)
 sys.path.append(HEATPath)
 import MHDClass
@@ -13,8 +13,9 @@ import matplotlib.pyplot as plt
 #gFilePath = '/home/tom/HEATtest/NSTXU/limiter/g204118.00113'
 #gFilePath = '/home/tom/HEATtest/NSTXU/test/g204118.00100'
 #gFilePath = '/home/tom/Downloads/g1210923001.01000'
-gFilePath = '/home/tom/work/CFS/GEQDSKs/TSCruns/TSC-V2h01/TSC-V2h01/corrected_v2y_Ip_Bt_psi_Fpol/withTimesteps/g000001.00400'
-gFilePath = '/home/tom/work/CFS/GEQDSKs/TSCruns/TSC-V2h01/TSC-V2h01/corrected_v2y_Ip_Bt_psi_Fpol/interpolated/g000001.00400'
+#gFilePath = '/home/tom/work/CFS/GEQDSKs/TSCruns/TSC-V2h01/TSC-V2h01/corrected_v2y_Ip_Bt_psi_Fpol/withTimesteps/g000001.00400'
+#gFilePath = '/home/tom/work/CFS/GEQDSKs/TSCruns/TSC-V2h01/TSC-V2h01/corrected_v2y_Ip_Bt_psi_Fpol/interpolated/g000001.00400'
+gFilePath = '/home/tlooby/projects/MEQ_EQ/tmp/g000001_0.0'
 MHD = MHDClass.setupForTerminalUse(gFile=gFilePath)
 ep = MHD.ep
 
@@ -204,6 +205,7 @@ try:
                         )
                 )
                 )
+
 except:
     print("Could not create contour plot.  Psi levels must be increasing.")
     print("Try flipping psi sign and replotting.")
@@ -244,15 +246,30 @@ except:
 #    row=1,
 #    col=1
 #    )
-print(r.min())
-print(r.max())
-print(z.min())
-print(z.max())
-print(aspect)
-print(height)
-print(width)
+
+
+#gas injector lines
+l = -2.0
+#ang1 = np.radians(27.7) #given in degrees
+#line1_x0 = 1.333
+#line1_x1 = line1_x0 - l*np.sin(ang1)
+#line1_y0 = -0.86
+#line1_y1 = line1_y0 - l*np.cos(ang1)
+#line1 = np.array([[line1_x0, line1_y0],[line1_x1, line1_y1]])
+#fig.add_trace(go.Scatter(x=line1[:,0], y=line1[:,1], name="Line 1", line=dict(color='yellow', width=5)))
+
+ang2 = np.radians(34.3) #given in degrees
+line2_x0 = 1.29
+line2_x1 = line2_x0 - l*np.sin(ang2)
+line2_y0 = -0.671
+line2_y1 = line2_y0 - l*np.cos(ang2)
+line2 = np.array([[line2_x0, line2_y0],[line2_x1, line2_y1]])
+
+fig.add_trace(go.Scatter(x=line2[:,0], y=line2[:,1], name="Line 2", line=dict(color='yellow', width=5)))
+
+
 fig.update_layout(
-    title="204118@1004ms",
+    #title="204118@1004ms",
     xaxis_title="R [m]",
     yaxis_title="Z [m]",
     xaxis_range=[r.min(),r.max()],
@@ -278,6 +295,6 @@ fig.update_layout(
     ),
     )
 fig.show()
-pdfFile = '/home/tom/phd/dissertation/diss/figures/pdf/204118_00113_EQ.pdf'
+#pdfFile = '/home/tom/phd/dissertation/diss/figures/pdf/204118_00113_EQ.pdf'
 #pdfFile = '/home/tom/phd/dissertation/diss/figures/pdf/test.pdf'
 #fig.write_image(pdfFile)

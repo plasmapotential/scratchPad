@@ -52,7 +52,7 @@ HV2AR = HV2[0]+1.0
 HV2max = 350 #per olivia from literature
 ReX = (HV2AR-HV2) / (HV2AR - HV2max)
 #plot hardness
-#fig.add_trace(go.Scatter(x=t, y=HV2, name='HV2', mode='markers', marker={'size':15}))
+#fig.add_trace(go.Scatter(x=t, y=HV2, name='HV2', mode='markers', marker={'size':25, 'symbol':'star'}))
 #n = np.log(np.log( 1.0 / (1-ReX) )) / np.log(t)
 #K  = np.log(1/1-ReX)
 lnt = np.log(t)
@@ -139,7 +139,7 @@ fig.update_layout(
 #title="Temperature Probe Time Evolution",
     font=dict(
         family="Arial",
-        size=20,
+        size=40,
         color="Black"
     ),
     margin=dict(
@@ -149,9 +149,17 @@ fig.update_layout(
         t=10,
         pad=2
     ),
+    legend=dict(
+        x=0.5,  # x=0 positions the legend at the left
+        y=0,  # y=1 positions the legend at the top
+        xanchor='left',  # 'left' anchors the left part of the legend at x position
+        yanchor='bottom'    # 'top' anchors the top part of the legend at y position
+    )   
 )
 
+fig.update(layout_showlegend=False)
 fig.update_yaxes(title='ReX Fraction')
+#fig.update_yaxes(title='HV2 Hardness')
 fig.update_xaxes(title='Time [hours]')
 fig.show()
 
